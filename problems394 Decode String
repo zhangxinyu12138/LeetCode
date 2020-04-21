@@ -1,0 +1,40 @@
+s = "3[a]2[bc]", return "aaabcbc".
+s = "3[a2[c]]", return "accaccacc".  //嵌套
+s = "2[abc]3[cd]ef", return "abcabccdcdcdef".
+把编码的字符串和数字分别放在两个栈里，遇到‘[’，字符串压入字符串栈中，遇到‘]’，从数字栈中取出数字，将字符串栈中的字符串后面拼接重复数字次的临时字符串。
+注意，如果是数字可能是多位数字，需要用while循环判断。
+class Solution {
+    public String decodeString(String s) {
+        int len=s.length();
+        if(len==0) return "";
+        Stack<String> strStack=new Stack<>();
+        Stack<Integer> numStack=new Stack<>();
+        StringBuilder result=new StringBuilder();
+        for(int i=0;i<len;i++){
+            char c=s.charAt(i);
+            if(c=='['){
+                strStack.push(result.toString());
+                result=new StringBuilder();
+            }else if(c==']'){
+                int num=numStack.pop();
+                StringBuilder temp=new StringBuilder(strStack.pop());
+                for(int j=0;j<num;j++){
+                   temp.append(result);
+                }
+                result=temp;
+            }else if(Character.isDigit(c)){
+                int num=0;
+                while(i<len&&Character.isDigit(s.charAt(i))){
+                    num=10*num+s.charAt(i)-'0';
+                    i++;
+                }
+                i--;
+                numStack.push(num);
+            }else{
+                result.append(c);
+            }
+        }
+        return result.toString();
+    }
+}
+
