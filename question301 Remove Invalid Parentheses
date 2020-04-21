@@ -1,5 +1,14 @@
 移除无效的括号
-第一种解法：时间复杂度 2的N次方，空间复杂度 N
+Input: "()())()"
+Output: ["()()()", "(())()"]
+
+Input: "(a)())()"
+Output: ["(a)()()", "(a())()"]
+
+Input: ")("
+Output: [""]
+
+1.第一种解法：时间复杂度 2的N次方，空间复杂度 N
 class Solution {
 
   //最终无重复的结果集
@@ -62,7 +71,7 @@ class Solution {
   }
 }
 
-第二种解法 预先计算出需要删除的左括号数和右括号数，在删除时，如果leftRem<0则不可删
+2.第二种解法 预先计算出需要删除的左括号数和右括号数，在删除时，如果leftRem<=0或者rightRem<=0 则不可删 （时间复杂度 2的N次方，空间复杂度 N）
  private void recurse(String s,int index,int leftCount,int rightCount,int leftRem,int rightRem,StringBuilder expression){
         if(index==s.length()){
             if(leftRem==0&&rightRem==0){
