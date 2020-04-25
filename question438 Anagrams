@@ -1,0 +1,5 @@
+同字母异序词整理
+1.438 (Hash Table)Given a string s and a non-empty string p, find all the start indices of p's anagrams in s.
+找到与模式串同字母异序词的所有开始下标
+
+
