@@ -1,6 +1,6 @@
 同字母异序词整理
 1.438 (Hash Table + Sliding Window)Given a string s and a non-empty string p, find all the start indices of p's anagrams in s.
-找到与模式串同字母异序词的所有开始下标
+找到与模式串同字母异序词的所有开始下标,时间复杂度（l1+l2)
 class Solution {
     public List<Integer> findAnagrams(String s, String p) {
         List<Integer> res=new ArrayList<>();
@@ -30,7 +30,7 @@ class Solution {
         return res;
     }
 }  
-leetcode 49 Given an array of strings, group anagrams together.
+2.leetcode 49 Given an array of strings, group anagrams together.
 
 Example:
 
@@ -62,6 +62,64 @@ class Solution {
         return new ArrayList(ans.values());
     }
 }
+3.leetcode 567 Given two strings s1 and s2, write a function to return true if s2 contains the permutation of s1. 
+In other words, one of the first string's permutations is the substring of the second string.时间复杂度：O(l1+(l2-l1))
+class Solution {
+    public boolean checkInclusion(String s1, String s2) {
+        if(s1.length()>s2.length()) return false;
+        int[] s1map=new int[26];
+        int[] s2map=new int[26];
+        for(int i=0;i<s1.length();i++){
+            s1map[s1.charAt(i)-'a']++;
+            s2map[s2.charAt(i)-'a']++;
+        }
+        int count=0;
+        for(int i=0;i<26;i++){
+            if(s1map[i]==s2map[i]){
+                count++;
+            }
+        }
+        for(int i=0;i<s2.length()-s1.length();i++){
+            int r=s2.charAt(i+s1.length())-'a',l=s2.charAt(i)-'a';
+            if(count==26) return true;
+            s2map[r]++;
+            if(s2map[r]==s1map[r]){
+                count++;
+            }else if(s2map[r]==s1map[r]+1){
+                count--;
+            }
+            s2map[l]--;
+            if(s2map[l]==s1map[l]){
+                count++;
+            }else if(s2map[l]==s1map[l]-1){
+                count--;
+            }
+        }
+        return count==26;
+    }
+}
+参照438修改代码，达到更少的时间复杂度和空间复杂度
+ public boolean checkInclusion(String s1, String s2) {
+        if(s1.length()>s2.length()) return false;
+        int[] s1map=new int[26];
+        for(int i=0;i<s1.length();i++){
+            s1map[s1.charAt(i)-'a']++;
+        }
+        int count=s1.length();
+        int l=0,r=0;
+        while(r<s2.length()){
+            if(s1map[s2.charAt(r++)-'a']-->0){
+                count--;
+            }
+            if(count==0){
+                return true;
+            }
+            if(r-l==s1.length()&&s1map[s2.charAt(l++)-'a']++>=0){
+                count++;
+            }
+        }
+        return count==0;
+    }
 
 
 
