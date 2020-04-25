@@ -1,3 +1,4 @@
+1.返回路径和等于指定数的路径条数。路径不需要从根节点开始也不需要以叶子节点结束。
 root = [10,5,-3,3,2,null,11,3,-2,null,1], sum = 8
 
       10
@@ -25,7 +26,9 @@ Return 3. The paths that sum to 8 are:
  */
 class Solution {
     public int pathSum(TreeNode root, int sum) {
-        if(root==null) return 0;
+        if(root==null){
+            return 0;
+        }
         //路径和不一定从根节点开始，每一个节点都可能是开始节点
         return dfs(root,sum)+pathSum(root.left,sum)+pathSum(root.right,sum);
     }
@@ -41,5 +44,70 @@ class Solution {
         count+=dfs(root.left,sum-root.val);
         count+=dfs(root.right,sum-root.val);
         return count;
+    }
+}
+类似的还有leetcode 113,求出所有root-to-leaf路径
+find all root-to-leaf paths where each path's sum equals the given sum.
+Given the below binary tree and sum = 22,
+
+      5
+     / \
+    4   8
+   /   / \
+  11  13  4
+ /  \    / \
+7    2  5   1
+Return:
+
+[
+   [5,4,11,2],
+   [5,8,4,5]
+]
+class Solution {
+    public List<List<Integer>> pathSum(TreeNode root, int sum) {
+        List<List<Integer>> res=new ArrayList<>();
+        List<Integer> alist=new ArrayList<>();
+        if(root!=null){
+            //一定从根节点开始的路径
+            dfs(alist,res,root,sum);
+        }
+        return res;
+    }
+    private void dfs(List<Integer> alist,List<List<Integer>> res,TreeNode root,int sum){
+        //边界状态一定是到达了叶节点
+        if(root.left==null&&root.right==null){
+            if(sum==root.val){
+                alist.add(root.val);
+                res.add(new ArrayList<Integer>(alist));
+                //回溯
+                alist.remove(alist.size()-1);
+            }
+            return;
+        }
+        //先序遍历
+        alist.add(root.val);
+        if(root.left==null){
+            dfs(alist,res,root.right,sum-root.val);
+        }else if(root.right==null){
+            dfs(alist,res,root.left,sum-root.val);
+        }else{
+            //保留向左节点走之前的状态
+            List<Integer> alistCopy=new ArrayList<Integer>(alist);
+            dfs(alist,res,root.right,sum-root.val);
+            //恢复到向左节点走之前的状态
+            alist=alistCopy;
+            dfs(alist,res,root.left,sum-root.val);
+        }
+    }
+}
+还有leetcode 112 判断路径是否存在
+Given a binary tree and a sum, determine if the tree has a root-to-leaf path such that adding up all the values along the path equals the given sum.
+
+
+class Solution {
+    public boolean hasPathSum(TreeNode root, int sum) {
+        if(root==null) return false;
+        if(root.left==null&&root.right==null&&sum-root.val==0) return true;
+        return hasPathSum(root.left,sum-root.val)||hasPathSum(root.right,sum-root.val);
     }
 }
