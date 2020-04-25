@@ -1,5 +1,67 @@
 同字母异序词整理
-1.438 (Hash Table)Given a string s and a non-empty string p, find all the start indices of p's anagrams in s.
+1.438 (Hash Table + Sliding Window)Given a string s and a non-empty string p, find all the start indices of p's anagrams in s.
 找到与模式串同字母异序词的所有开始下标
+class Solution {
+    public List<Integer> findAnagrams(String s, String p) {
+        List<Integer> res=new ArrayList<>();
+        if(s==null||s.length()==0||p==null||p.length()==0){
+            return res;
+        }
+        int[] hash=new int[26];
+        char[] pp=p.toCharArray();
+        for(char i:pp){
+            hash[i-'a']++;
+        }
+        int left=0,right=0,count=p.length();
+        while(right<s.length()){
+            //如果p中没有的字符，经过这个判断条件之后会变为负数
+            if(hash[s.charAt(right++)-'a']-->0){
+                count--;
+            }
+            if(count==0){
+                res.add(left);
+            }
+            //当窗口大小和需要比较的字符串大小一致的时候，将窗口左边的指针向右边移动，移动的同时左边的字符计数因为在第一个if的地方hash值减小过，所以需要执行对应恢复操作
+            //即：hash值增加，count计数值增加。
+            if(right-left==p.length()&&hash[s.charAt(left++)-'a']++>=0){
+                count++;
+            }
+        }
+        return res;
+    }
+}  
+leetcode 49 Given an array of strings, group anagrams together.
+
+Example:
+
+Input: ["eat", "tea", "tan", "ate", "nat", "bat"],
+Output:
+[
+  ["ate","eat","tea"],
+  ["nat","tan"],
+  ["bat"]
+]
+class Solution {
+    public List<List<String>> groupAnagrams(String[] strs) {
+        if (strs.length == 0) return new ArrayList();
+        Map<String, List> ans = new HashMap<String, List>();
+        int[] count = new int[26];
+        for (String s : strs) {
+            Arrays.fill(count, 0);
+            for (char c : s.toCharArray()) count[c - 'a']++;
+
+            StringBuilder sb = new StringBuilder("");
+            for (int i = 0; i < 26; i++) {
+                sb.append('#');
+                sb.append(count[i]);
+            }
+            String key = sb.toString();
+            if (!ans.containsKey(key)) ans.put(key, new ArrayList());
+            ans.get(key).add(s);
+        }
+        return new ArrayList(ans.values());
+    }
+}
+
 
 
