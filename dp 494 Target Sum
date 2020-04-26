@@ -9,6 +9,11 @@ Explanation:
 +1+1+1+1-1 = 3
 
 There are 5 ways to assign symbols to make the sum of nums be target 3.
+
+The length of the given array is positive and will not exceed 20.
+The sum of elements in the given array will not exceed 1000.
+Your output answer is guaranteed to be fitted in a 32-bit integer.
+（数组中的元素和不超过1000，那么加上正负号之后不少于-1000，不大于1000，总和一定在2001个数之内，dp算法或者备忘录算法数组大小为2001）
 1.递归
 public class Solution {
     int count = 0;
