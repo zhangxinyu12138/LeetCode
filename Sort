@@ -1,9 +1,9 @@
 1.冒泡排序    时间复杂度: O(N^2) 空间复杂度: O(1) 稳定性：稳定
-private static void bubbleSort(int[] arr) {
-        for (int i = 0; i < arr.length; i++) {
-            for (int j = 0; j < arr.length - i -1; j++) {   
-                if (arr[j] > arr[j + 1]) {
-                    swap(arr,j,j+1);
+public static void bubbleSort(int[] arr) {
+        for (int end = arr.length-1 ; end > 0; end --) {
+            for (int i = 0; i < end ; i++) {   
+                if (arr[i] > arr[i + 1]) {
+                    swap(arr,i,i+1);
                 }
             }
         }
@@ -12,30 +12,28 @@ private static void bubbleSort(int[] arr) {
 空间复杂度: O(1)
 稳定性：稳定
 2.选择排序   时间复杂度: O(N^2) 空间复杂度: O(1) 稳定性：不稳定
-public static void selectionSort(int[] nums) {
+public static void selectionSort(int[] arr) {
 
-    if (nums == null || nums.length < 2) {
+    if (arr == null || arr.length < 2) {
         return;
     }
 
-    for(int i = 0; i < nums.length - 1; i++) {
-        for(int j = i + 1; j < nums.length; j++) {
-            if(nums[i] > nums[j]) {
-                swap(nums, i, j);
-            }
+    for(int i = 0; i < arr.length - 1; i++) {
+        int minIndex = i;
+        for(int j = i + 1; j < arr.length; j++) {
+               minIndex = arr[j] < arr[minIndex] ? j: minIndex;
         }
+        swap(arr,i,minIndex);
     }
 
 }
 
 3.插入排序 每次排序前部形成一个暂时的有序序列，扑克牌  最好复杂度：O(N) 数组有序  最差复杂度：O(N^2)  数组逆序 按照最差来算时间复杂度
-   
+   public static void insertSort(int[] arr) {
        for (int i=1;i<arr.length;i++){
-           //待排元素小于有序序列的最后一个元素时，向前插入
-             for (int j=i-1;j>=0&&arr[j]>arr[j+1];j--){
+             for (int j = i - 1; j >= 0 && arr[j] > arr[j+1]; j--){
                     swap(arr,j,j+1);
              }
         }
-        
+    }
 4.归并排序
-
