@@ -1,0 +1,16 @@
+  public static int getMax(int[] arr,int L,int R){
+        if(L==R) return arr[L];
+        int mid=(L+R)/2;
+        //将递归代码所在行数，L，R,mid的值压栈,调用子过程 getMax(arr,L,mid)
+        int maxLeft=getMax(arr,L,mid);
+        //将maxLeft的值也压栈
+        int maxRight=getMax(arr,mid,R);
+        return Math.max(maxLeft,maxRight);
+    }
+    
+递归函数是系统帮你压栈;
+一个函数调子过程之前，会把自己的所有过程全部压到栈里去，信息完全保存；
+子过程返回之后，会利用这些信息彻底还原现场，继续往下跑;
+跑完之后，再从栈中拿出一个函数，再还原现场，最终串起来所有子过程跟父过程的通信
+
+将递归函数改成非递归函数(迭代函数，就是自己编程实现系统压栈的过程）
