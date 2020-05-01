@@ -35,6 +35,8 @@ public static void selectionSort(int[] arr) {
              }
         }
     }
+    
+ 前三种排序较慢，因为浪费了比较的次数；而归并利用起了之前小组排序的时候小组内的比较，比较没有重复
 4.归并排序  时间复杂度：O(N*logN) 空间复杂度: O(N)
 public static void mergeSort(int[] arr){
     sortProcess(arr,0,arr.length-1);
