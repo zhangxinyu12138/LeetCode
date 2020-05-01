@@ -8,9 +8,7 @@ public static void bubbleSort(int[] arr) {
             }
         }
     }
-时间复杂度: O(N^2)
-空间复杂度: O(1)
-稳定性：稳定
+
 2.选择排序   时间复杂度: O(N^2) 空间复杂度: O(1) 稳定性：不稳定
 public static void selectionSort(int[] arr) {
 
@@ -29,6 +27,7 @@ public static void selectionSort(int[] arr) {
 }
 
 3.插入排序 每次排序前部形成一个暂时的有序序列，扑克牌  最好复杂度：O(N) 数组有序  最差复杂度：O(N^2)  数组逆序 按照最差来算时间复杂度
+空间复杂度: O(1)
    public static void insertSort(int[] arr) {
        for (int i=1;i<arr.length;i++){
              for (int j = i - 1; j >= 0 && arr[j] > arr[j+1]; j--){
@@ -36,7 +35,7 @@ public static void selectionSort(int[] arr) {
              }
         }
     }
-4.归并排序 O(N*logN)
+4.归并排序  时间复杂度：O(N*logN) 空间复杂度: O(N)
 public static void mergeSort(int[] arr){
     sortProcess(arr,0,arr.length-1);
 }
