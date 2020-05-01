@@ -42,9 +42,10 @@ public static void mergeSort(int[] arr){
 public static void sortProcess(int[] arr,int L，int R){
     if(L==R) return;
     int mid=(L+R)/2;
-    sortProcess(arr,L,mid);
-    sortProcess(arr,mid+1,R);
-    merge(arr,L,mid,R);
+    sortProcess(arr,L,mid);  //T(N/2)
+    sortProcess(arr,mid+1,R);  //T(N/2)
+    merge(arr,L,mid,R);  ////   O(N)
+    //T(N)=2T(N/2)+O(N)
 }
 public static void merge(int[] arr,int L,int mid,int R){
     int[] help = new int[R-L+1];
