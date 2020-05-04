@@ -163,4 +163,49 @@
         return index;
     }
 
+2.堆排序
+//堆排序,用数组结构，在逻辑概念上产生与之相对应的完全二叉树
+    //大根堆：完全二叉树中任何一颗子树的最大值都是这个子树的头部
+    public static void heapSort(int[] arr) {
+        if (arr == null || arr.length < 2) {
+            return;
+        }
+        for (int i = 0; i < arr.length; i++) {
+            //往上调整
+            heapInsert(arr, i);
+        }
+        int heapSize = arr.length;
+        swap(arr, 0, --heapSize);
+        while (heapSize > 0) {
+            heapify(arr, 0, heapSize);
+            swap(arr, 0, --heapSize);
+        }
+
+    }
+
+    //复杂度O(N)=log1+log2+..+logN
+    public static void heapInsert(int[] arr, int index) {
+        while (arr[index] > arr[(index - 1) / 2]) {
+            swap(arr, index, (index - 1) / 2);
+            index = (index - 1) / 2;
+        }
+    }
+
+    //一个值变小往下沉的操作
+    public static void heapify(int[] arr, int index, int heapSize) {
+        int left = index * 2 + 1;
+        while (left < heapSize) {
+            //判断左右孩子哪个大
+            int largest = left + 1 < heapSize && arr[left + 1] > arr[left] ? left + 1 : left;
+            //判断父节点和两个孩子哪个大
+            largest = arr[largest] > arr[index] ? largest : index;
+            if (largest == index) {
+                break;
+            }
+            swap(arr, largest, index);
+            index = largest;
+            left = index * 2 + 1;
+        }
+
+    }
 
