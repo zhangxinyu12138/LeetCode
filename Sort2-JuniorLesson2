@@ -164,7 +164,7 @@
     }
 
 2.堆排序
-//堆排序,用数组结构，在逻辑概念上产生与之相对应的完全二叉树
+    //堆排序,用数组结构，在逻辑概念上产生与之相对应的完全二叉树
     //大根堆：完全二叉树中任何一颗子树的最大值都是这个子树的头部
     public static void heapSort(int[] arr) {
         if (arr == null || arr.length < 2) {
@@ -175,9 +175,11 @@
             heapInsert(arr, i);
         }
         int heapSize = arr.length;
+        //把最后一个位置和堆顶位置做交换
         swap(arr, 0, --heapSize);
         while (heapSize > 0) {
             heapify(arr, 0, heapSize);
+            //每次放好最后一个位置的数，不稳定
             swap(arr, 0, --heapSize);
         }
 
