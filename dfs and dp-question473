@@ -1,0 +1,105 @@
+dp方法用了大量的位运算和按位逻辑运算符，可重点体会
+public class MatchsticksSquare {
+    1.dfs
+    /*public List<Integer> nums;
+    public int[] sums;
+    public int possibleSquareSide;
+
+    public MatchsticksSquare() {
+        this.sums = new int[4];
+    }
+
+    //时间 4的N次方
+    //空间 N
+    public boolean dfs(int index) {
+        if (index == this.nums.size()) {
+            return sums[0] == sums[1] && sums[1] == sums[2] && sums[2] == sums[3];
+        }
+        int element = this.nums.get(index);
+        for (int i = 0; i < 4; i++) {
+            if (this.sums[i] + element <= this.possibleSquareSide) {
+                this.sums[i] += element;
+                if (this.dfs(index + 1)) {
+                    return true;
+                }
+                this.sums[i] -= element;
+            }
+        }
+        return false;
+    }*/
+
+    //主方法
+    public boolean makesquare(int[] nums) {
+        if (nums == null || nums.length == 0) {
+            return false;
+        }
+        int L = nums.length;
+        int perimeter = 0;
+        for (int i = 0; i < L; i++) {
+            perimeter += nums[i];
+        }
+        this.possibleSquareSide = perimeter / 4;
+        if (this.possibleSquareSide * 4 != perimeter) {
+            return false;
+        }
+        /*this.nums = Arrays.stream(nums).boxed().collect(Collectors.toList());
+        Collections.sort(this.nums, Collections.reverseOrder());
+        return this.dfs(0);*/
+        this.nums = nums;
+        return this.recurse((1 << L) - 1, 0);
+
+    }
+
+    //带备忘录的递归，也可看作dp
+    //memoizatin cache
+    public HashMap<Pair<Integer, Integer>, Boolean> memo;
+    public int[] nums;
+    public int possibleSquareSide;
+
+    public MatchsticksSquare() {
+        this.memo = new HashMap<>();
+    }
+
+    //时间复杂度: N*2的N次方
+    //空间复杂度: N+2的N次方(N为栈空间，2的N次方为memo大小，常数项为2
+    public boolean recurse(Integer mask, Integer sidesDone) {
+        int total = 0;
+        int L = this.nums.length;
+        Pair<Integer, Integer> memoKey = new Pair(mask, sidesDone);
+        for (int i = L - 1; i >= 0; i--) {
+            if ((mask & (1 << i)) == 0) {
+                total += this.nums[L - 1 - i];
+            }
+        }
+        //新加入的火柴正好可以组成一条边
+        if (total > 0 && total % this.possibleSquareSide == 0) {
+            sidesDone++;
+        }
+        //已经组成三条边，剩下的为第四条边，不用计算了
+        if (sidesDone == 3) {
+            return true;
+        }
+        //直接返回之前计算过的值
+        if (this.memo.containsKey(memoKey)) {
+            return this.memo.get(memoKey);
+        }
+        boolean ans = false;
+        int c = total / this.possibleSquareSide;
+        //为了组成下一条边还需要的火柴长度
+        int rem = this.possibleSquareSide * (c + 1) - total;
+        for (int i = L - 1; i >= 0; i--) {
+            //只有mask&(1<<i)==0，说明第L-1-i个火柴没用过，mask表示火柴的当前使用情况
+            //第L-1-i个火柴必须比当前组成新的一条边需要的火柴棍长度小才能往下递归
+            if (this.nums[L - 1 - i] <= rem && (mask & (1 << i)) > 0) {
+                //异或操作修改mask,即选中L-i-1个火柴棍之后火柴的使用情况改变
+                if (this.recurse(mask ^ (1 << i), sidesDone)) {
+                    ans = true;
+                    break;
+                }
+            }
+        }
+        this.memo.put(memoKey, ans);
+        return ans;
+    }
+
+}
