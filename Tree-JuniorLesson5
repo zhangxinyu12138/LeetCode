@@ -1,0 +1,325 @@
+    static class Node {
+        public int value;
+        public Node left;
+        public Node right;
+
+        public Node(int data) {
+            this.value = data;
+        }
+    }
+
+    //递归方法先序、中序、后序打印二叉树
+    //遍历时，每个节点会访问到3次，打印语句的位置不同
+    // 先序、中序、后序分别对应着第一次、第二次、第三次访问到该节点
+    public void preOrderRecur(Node head) {
+        if (head == null) return;
+        System.out.print(head.value + " ");
+        preOrderRecur(head.left);
+        preOrderRecur(head.right);
+    }
+
+    public void inOrderRecur(Node head) {
+        if (head == null) return;
+        inOrderRecur(head.left);
+        System.out.print(head.value + " ");
+        inOrderRecur(head.right);
+    }
+
+    public void posOrderRecur(Node head) {
+        if (head == null) return;
+        posOrderRecur(head.left);
+        posOrderRecur(head.right);
+        System.out.print(head.value + " ");
+    }
+
+    //要实现从子节点回到父节点，需要用栈不能用队列(需要先进后出）
+    public void preOrderUnRecur(Node head) {
+        if (head != null) {
+            Stack<Node> stack = new Stack<Node>();
+            stack.add(head);
+            while (!stack.isEmpty()) {
+                head = stack.pop();
+                System.out.print(head.value + " ");
+                if (head.right != null) {
+                    stack.push(head.right);
+                }
+                if (head.left != null) {
+                    stack.push(head.left);
+                }
+            }
+        }
+        System.out.println();
+    }
+
+    public void inOrderUnRecur(Node head) {
+        if (head != null) {
+            Stack<Node> stack = new Stack<Node>();
+            while (!stack.isEmpty() || head != null) {
+                //当前节点不为空，当前节点压入栈，节点往左边跑
+                if (head != null) {
+                    stack.push(head);
+                    head = head.left;
+                } else {
+                    //当前节点为空，从栈拿一个打印，当前节点往右边跑
+                    head = stack.pop();
+                    //将打印这步改成与前一个数比较，可以判断是否为二叉搜索树
+                    System.out.print(head.value + " ");
+                    head = head.right;
+                }
+            }
+        }
+        System.out.println();
+    }
+
+    //用两个栈实现二叉树后序遍历，先实现中右左，使用另一个栈实现左右中
+    public void posOrderUnRecur1(Node head) {
+        if (head != null) {
+            Stack<Node> s1 = new Stack<Node>();
+            Stack<Node> s2 = new Stack<Node>();
+            while (!s1.isEmpty()) {
+                head = s1.pop();
+                s2.push(head);
+                if (head.left != null) {
+                    s1.push(head.left);
+                }
+                if (head.right != null) {
+                    s1.push(head.right);
+                }
+            }
+            while (!s2.isEmpty()) {
+                System.out.print(s2.pop().value + " ");
+            }
+        }
+        System.out.println();
+    }
+
+    //使用一个栈实现二叉树后序遍历
+    public void posOrderUnRecur2(Node head) {
+        Node h = head;
+        if (h != null) {
+            Stack<Node> stack = new Stack<Node>();
+            //h为最近一次弹出并打印的节点，c为当前stack的栈顶节点，但是不从stack中弹出
+            stack.push(h);
+            Node c = null;
+            while (!stack.isEmpty()) {
+                c = stack.peek();
+                //左子树还没处理过，将c左孩子压入栈中
+                if (c.left != null && h != c.left && h != c.right) {
+                    stack.push(c.left);
+                } else if (c.right != null && h != c.right) {
+                    stack.push(c.right);
+                } else {
+                    //c的左右子树已经打印完，从stack中弹出c并打印，且另h=c
+                    System.out.print(stack.pop().value + " ");
+                    h = c;
+                }
+            }
+        }
+        System.out.println();
+    }
+
+    static class Node2 {
+        public int value;
+        public Node2 left;
+        public Node2 right;
+        public Node2 parent;
+
+        public Node2(int data) {
+            this.value = data;
+        }
+    }
+
+    //找到二叉树某个结点的后继结点(中序遍历的后一个结点）
+    public Node2 getNextNode(Node2 node) {
+        if (node == null) {
+            return node;
+        }
+        if (node.right != null) {
+            return getLeftMost(node.right);
+        } else {
+            Node2 parent = node.parent;
+            while (parent != null && parent.left != node) {
+                node = parent;
+                parent = node.parent;
+            }
+            return parent;
+        }
+    }
+
+    public Node2 getLeftMost(Node2 node) {
+        if (node == null) {
+            return node;
+        }
+        while (node.left != null) {
+            node = node.left;
+        }
+        return node;
+    }
+
+    //先序遍历实现树的序列化、反序列化
+    public String serialByPre(Node head) {
+        if (head == null) return "#!";
+        String res = head.value + "!";
+        res += serialByPre(head.left);
+        res += serialByPre(head.right);
+        return res;
+    }
+
+    public Node reconByPreString(String preStr) {
+        String[] values = preStr.split("!");
+        Queue<String> queue = new LinkedList<>();
+        for (int i = 0; i != values.length; i++) {
+            queue.offer(values[i]);
+        }
+        return reconPreOrder(queue);
+    }
+
+    public Node reconPreOrder(Queue<String> queue) {
+        String value = queue.poll();
+        if (value.equals("#")) {
+            return null;
+        }
+        Node head = new Node(Integer.valueOf(value));
+        head.left = reconPreOrder(queue);
+        head.right = reconPreOrder(queue);
+        return head;
+    }
+
+    //层序遍历
+    public String serialByLevel(Node head) {
+        if (head == null) {
+            return "#!";
+        }
+        String res = head.value + "!";
+        Queue<Node> queue = new LinkedList<>();
+        queue.offer(head);
+        while (!queue.isEmpty()) {
+            head = queue.poll();
+            if (head.left != null) {
+                res += head.left.value + "!";
+                queue.offer(head.left);
+            } else {
+                res += "#!";
+            }
+            if (head.right != null) {
+                res += head.right.value + "!";
+                queue.offer(head.right);
+            } else {
+                res += "#!";
+            }
+        }
+        return res;
+    }
+
+    public Node reconByLevelString(String levelStr) {
+        String[] values = levelStr.split("!");
+        int index = 0;
+        Node head = generateNodeByString(values[index++]);
+        Queue<Node> queue = new LinkedList<>();
+        if (head != null) {
+            queue.offer(head);
+        }
+        Node node = null;
+        while (!queue.isEmpty()) {
+            node = queue.poll();
+            node.left = generateNodeByString(values[index++]);
+            node.right = generateNodeByString(values[index++]);
+            if (node.left != null) {
+                queue.offer(node.left);
+            }
+            if (node.right != null) {
+                queue.offer(node.right);
+            }
+        }
+        return head;
+    }
+
+    public Node generateNodeByString(String val) {
+        if (val.equals("#")) {
+            return null;
+        }
+        return new Node(Integer.valueOf(val));
+    }
+
+    //判断树是不是平衡二叉树（左右子树高度差小于2）
+    static class ReturnType {
+        public boolean isBalanced;
+        public int height;
+
+        public ReturnType(boolean isBalanced, int height) {
+            this.isBalanced = isBalanced;
+            this.height = height;
+        }
+    }
+
+    public ReturnType process(Node head) {
+        //空树是平衡的
+        if (head == null) {
+            return new ReturnType(true, 0);
+        }
+        ReturnType leftData = process(head.left);
+        ReturnType rightData = process(head.right);
+        int height = Math.max(leftData.height, rightData.height) + 1;
+        boolean isBalanced = leftData.isBalanced && rightData.isBalanced && Math.abs(leftData.height - rightData.height) < 2;
+        return new ReturnType(isBalanced, height);
+    }
+
+    public boolean isBalanced(Node head) {
+        return process(head).isBalanced;
+    }
+
+    //判断一棵树是否是完全二叉树
+    //1.结点有右节点没有左节点，返回false
+    //2.结点不是两个子节点都有，后面的结点都是叶节点，不能有子节点
+    public boolean isCBT(Node head) {
+        if (head == null) return true;
+        Queue<Node> queue = new LinkedList<>();
+        boolean leaf = false;
+        Node l = null;
+        Node r = null;
+        queue.offer(head);
+        while (!queue.isEmpty()) {
+            head = queue.poll();
+            l = head.left;
+            r = head.right;
+            if ((leaf && (l != null || r != null)) || (l == null && r != null)) {
+                return false;
+            }
+            if (l != null) {
+                queue.offer(l);
+            }
+            if (r != null) {
+                queue.offer(r);
+            } else {
+                leaf = true;
+            }
+        }
+        return true;
+    }
+
+    //O(h2)复杂度计算一颗完全二叉树节点的个数
+    public int nodeSum(Node head) {
+        if (head == null) {
+            return 0;
+        }
+        return bs(head, 1, mostLeftLevel(head, 1));
+    }
+
+    public int bs(Node node, int l, int h) {
+        if (l == h) {
+            return 1;
+        }
+        if (mostLeftLevel(node.right, l + 1) == h) {
+            return (1 << (h - l)) + bs(node.right, l + 1, h);
+        } else {
+            return (1 << (h - l - 1)) + bs(node.left, l + 1, h);
+        }
+    }
+
+    public int mostLeftLevel(Node node, int level) {
+        while (node != null) {
+            level++;
+            node = node.left;
+        }
+        return level - 1;
+    }
