@@ -1,0 +1,163 @@
+    //KMP算法
+    public int getIndexOf(String s, String m) {
+        if (s == null || m == null || m.length() < 1 || s.length() < m.length()) {
+            return -1;
+        }
+        char[] ss = s.toCharArray();
+        char[] ms = m.toCharArray();
+        int si = 0;
+        int mi = 0;
+        int[] next = getNextArray(ms);
+        while (si < ss.length && mi < ms.length) {
+            if (ss[si] == ms[mi]) {
+                si++;
+                mi++;
+            } else if (next[mi] == -1) {
+                si++;
+            } else {
+                mi = next[mi];
+            }
+        }
+        return mi == ms.length ? si - mi : -1;
+    }
+
+    public int[] getNextArray(char[] ms) {
+        if (ms.length == 1) {
+            return new int[]{-1};
+        }
+        int[] next = new int[ms.length];
+        next[0] = -1;
+        next[1] = 0;
+        int pos = 2;
+        int cn = 0;
+        while (pos < next.length) {
+            if (ms[pos - 1] == ms[cn]) {
+                next[pos++] = ++cn;
+            } else if (cn > 0) {
+                cn = next[cn];
+            } else {
+                next[pos++] = 0;
+            }
+        }
+        return next;
+    }
+
+    //KMP算法的应用
+    //京东原题，在字符串后面添加最少的字符，使得后来的字符串含有原来的两个串
+
+    //判断t1树中是否有与t2树拓扑结构完全相同的子树
+    //序列化+KMP
+    class Node {
+        int value;
+        Node left;
+        Node right;
+    }
+
+    public boolean isSubtree(Node t1, Node t2) {
+        String t1Str = serialByPre(t1);
+        String t2Str = serialByPre(t2);
+        return getIndexOf(t1Str, t2Str) != -1;
+    }
+
+    public String serialByPre(Node head) {
+        if (head == null) {
+            return "#!";
+        }
+        String res = head.value + "!";
+        res += serialByPre(head.left);
+        res += serialByPre(head.right);
+        return res;
+    }
+
+    //Manacher算法求解字符串中的最长回文子串长度
+    public static char[] manacherString(String str) {
+        char[] charArray = str.toCharArray();
+        char[] res = new char[charArray.length * 2 + 1];
+        int index = 0;
+        for (int i = 0; i != res.length; i++) {
+            res[i] = (i & 1) == 0 ? '#' : charArray[index++];
+        }
+        return res;
+    }
+
+    public static int maxLcpsLength(String str) {
+        if (str == null || str.length() == 0) {
+            return 0;
+        }
+        char[] charArr = manacherString(str);
+        //记录以i位置为回文中心的情况下得到的最大回文半径
+        int[] pArr = new int[charArr.length];
+        //最近一次更新pR时，回文中心的位置
+        int index = -1;
+        //之前遍历的所有字符的所有回文半径中，最右即将到达的位置
+        int pR = -1;
+        int max = Integer.MIN_VALUE;
+        for (int i = 0; i != charArr.length; i++) {
+            //2*index-1为i关于index对称的位置i'
+            //pR-i为i'回文半径超过index回文半径的情况下，i的最大回文半径
+            pArr[i] = pR > i ? Math.min(pArr[2 * index - i], pR - i) : 1;
+
+            //往外扩展的过程（只有当pR<i或者pArr[2 * index - i]==pR - i的时候才会继续扩展）
+            while (i + pArr[i] < charArr.length && i - pArr[i] > -1) {
+                if (charArr[i + pArr[i]] == charArr[i - pArr[i]]) pArr[i]++;
+                else break;
+            }
+            //更新pR和index
+            if (i + pArr[i] > pR) {
+                pR = i + pArr[i];
+                index = i;
+            }
+            max = Math.max(max, pArr[i]);
+        }
+        //最长回文子串等于最大回文半径-1，因为要去掉特殊符号#的影响
+        return max - 1;
+
+    }
+
+    //Manacher算法的应用
+    //在字符串最后添加最少字符，使整个字符串都成为回文串
+    public static String shortestEnd(String str) {
+        if (str == null || str.length() == 0) {
+            return null;
+        }
+        char[] charArr = manacherString(str);
+        //记录以i位置为回文中心的情况下得到的最大回文半径
+        int[] pArr = new int[charArr.length];
+        //最近一次更新pR时，回文中心的位置
+        int index = -1;
+        //之前遍历的所有字符的所有回文半径中，最右即将到达的位置
+        int pR = -1;
+        int maxContainsEnd = -1;
+        for (int i = 0; i != charArr.length; i++) {
+            //2*index-1为i关于index对称的位置i'
+            //pR-i为i'回文半径超过index回文半径的情况下，i的最大回文半径
+            pArr[i] = pR > i ? Math.min(pArr[2 * index - i], pR - i) : 1;
+
+            //往外扩展的过程（只有当pR<i或者pArr[2 * index - i]==pR - i的时候才会继续扩展）
+            while (i + pArr[i] < charArr.length && i - pArr[i] > -1) {
+                if (charArr[i + pArr[i]] == charArr[i - pArr[i]]) pArr[i]++;
+                else break;
+            }
+            //更新pR和index
+            if (i + pArr[i] > pR) {
+                pR = i + pArr[i];
+                index = i;
+            }
+            if (pR == charArr.length) {
+                maxContainsEnd = pArr[i];
+                break;
+            }
+        }
+        //最大回文长度是maxContainsEnd-1
+        char[] res = new char[str.length() - maxContainsEnd + 1];
+        for (int i = 0; i < res.length; i++) {
+            res[res.length - 1 - i] = charArr[i * 2 + 1];
+        }
+        return String.valueOf(res);
+    }
+
+    public static void main(String[] args) {
+        String str1 = "abdf123321";
+        String res = Lesson1.shortestEnd(str1);
+        System.out.println(res);
+    }
