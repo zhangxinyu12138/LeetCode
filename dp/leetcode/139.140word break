@@ -1,4 +1,15 @@
 1.华为一面笔试题
+Input:
+s = "catsanddog"
+wordDict = ["cat", "cats", "and", "sand", "dog"]
+Output:
+[
+  "cats and dog",
+  "cat sand dog"
+]
+
+第一题中等难度，问是否可以将s划分为wordDict中的单词，单词可以重复使用
+第二题困难，要求将划分的所有可能性输出，且每种可能性是一个字符串，说明找到前缀字符串划分的情况下，还要拼接上后续相等的字符串。
 
     public static boolean splitWords(String s, String[] wordArray) {
         HashSet<String> wordSet = new HashSet<>();
