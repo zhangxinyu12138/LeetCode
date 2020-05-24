@@ -112,3 +112,33 @@ Output:
         }
         return res;
     }
+    
+    //上面dp和暴力求最终划分所有可能的结果可能会超时，下面这个不会超时，做一个预处理，
+    //对于每一个作为单词结尾的下标i，标记出合理划分的单词的起始位置,然后在helper函数中深搜
+     List<String> result;
+     public List<String> wordBreak2(String s, List<String> wordDict) {
+         result=new ArrayList<String>();
+         int n=s.length();
+         List<Integer>[] pointer=new List[n];
+         for(int i=0;i<n;i++){
+             pointer[i]=new ArrayList<Integer>();
+         }
+         for(int i=0;i<n;i++){
+             for(int j=0;j<=i;j++){
+                 if(wordDict.contains(s.substring(j,i+1))&&(j==0||pointer[j-1].size()>0))
+                     pointer[i].add(j);
+             }
+         }
+         helper(pointer,s,n-1,"");
+         return result;
+     }
+     public void helper(List<Integer>[] pointer,String s,int i,String pattern){
+         if(i<0){
+             result.add(pattern);
+             return;
+         }
+         for(Integer item:pointer[i]){
+             String nextPattern=pattern.length()==0?s.substring(item,i+1):s.substring(item,i+1)+" "+pattern;
+             helper(pointer,s,item-1,nextPattern);
+         }
+     }
