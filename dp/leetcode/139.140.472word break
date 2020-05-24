@@ -11,6 +11,7 @@ Output:
 第一题中等难度，问是否可以将s划分为wordDict中的单词，单词可以重复使用
 第二题困难，要求将划分的所有可能性输出，且每种可能性是一个字符串，说明找到前缀字符串划分的情况下，还要拼接上后续相等的字符串。
 
+    //自己写的dfs，也算是暴力递归了，递归过程有些问题，不过终止条件写对了，继续努力
     public static boolean splitWords(String s, String[] wordArray) {
         HashSet<String> wordSet = new HashSet<>();
         for (String word : wordArray) {
@@ -75,7 +76,7 @@ Output:
     }
 
 
-    //dp求出所有划分结果
+    //dp求出所有划分结果 O(n的3次方）
     public static List<String> wordBreak(String s, Set<String> wordDict) {
         LinkedList<String>[] dp = new LinkedList[s.length() + 1];
         LinkedList<String> initial = new LinkedList<>();
@@ -96,7 +97,7 @@ Output:
     }
 
     
-    //暴力搜索划分结果
+    //暴力搜索划分结果O(2的n次方)
     public List<String> word_Break(String s, Set<String> wordDict, int start) {
         LinkedList<String> res = new LinkedList<>();
         if (start == s.length()) {
@@ -115,6 +116,7 @@ Output:
     
     //上面dp和暴力求最终划分所有可能的结果可能会超时，下面这个不会超时，做一个预处理，
     //对于每一个作为单词结尾的下标i，标记出合理划分的单词的起始位置,然后在helper函数中深搜
+    //预处理，时间复杂度(n的平方）
      List<String> result;
      public List<String> wordBreak2(String s, List<String> wordDict) {
          result=new ArrayList<String>();
@@ -142,3 +144,76 @@ Output:
              helper(pointer,s,item-1,nextPattern);
          }
      }
+     
+472.大神解法很厉害，学习一下
+
+给定一个不含重复单词的列表，编写一个程序，返回给定单词列表中所有的连接词。
+连接词的定义为：一个字符串完全是由至少两个给定数组中的单词组成的。
+示例:
+输入: ["cat","cats","catsdogcats","dog","dogcatsdog","hippopotamuses","rat","ratcatdogcat"]
+输出: ["catsdogcats","dogcatsdog","ratcatdogcat"]
+解释: "catsdogcats"由"cats", "dog" 和 "cats"组成; 
+     "dogcatsdog"由"dog", "cats"和"dog"组成; 
+     "ratcatdogcat"由"rat", "cat", "dog"和"cat"组成。
+
+
+    //前缀树+dfs 解决值472
+    public static List<String> findAllConcatenatedWordsInADict(String[] words) {
+        TrieNode root = new TrieNode();
+        for (String word : words) {
+            //// 题目描述有问题, 应该补充上连接词至少由两个非空单词组成, 否则如果 words 包含空串,
+            // 那么 words 中的其它所有字符串都是连接词. 这里加上特判就可以了.
+            if (!word.equals("")) {
+                root.add(word);
+            }
+        }
+        List<String> res = new ArrayList<>();
+        for (String word : words) {
+            if (dfs(word.toCharArray(), 0, root)) {
+                res.add(word);
+            }
+
+        }
+        return res;
+
+    }
+
+    private static boolean dfs(char[] str, int start, TrieNode root) {
+        int n = str.length;
+        TrieNode node = root;
+        for (int i = start; i < n; i++) {
+            if (!node.next.containsKey(str[i])) {
+                return false;
+            }
+            node = node.next.get(str[i]);
+            // 短路运算: 如果找到了一个字符串则尝试从头开始走, 找下一个字符串
+            if (node.isWord && dfs(str, i + 1, root)) {
+                return true;
+            }
+        }
+        // start != 0 含义即是不能匹配到自己，由至少两个给定数组中的单词组成的
+        return node.isWord && start != 0;
+    }
+
+    static class TrieNode {
+        public boolean isWord;
+        public Map<Character, TrieNode> next;
+
+        public TrieNode() {
+            isWord = false;
+            next = new HashMap<>();
+        }
+
+        public void add(String str) {
+            TrieNode node = this;
+            for (int i = 0; i < str.length(); i++) {
+                char c = str.charAt(i);
+                if (!node.next.containsKey(c)) {
+                    node.next.put(c, new TrieNode());
+                }
+                node = node.next.get(c);
+            }
+            node.isWord = true;
+        }
+
+    }
