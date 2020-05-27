@@ -1,4 +1,5 @@
     //BFPRT算法
+    //找到无序数组中最小的k个数
     public int[] getMinKNumsByBFPRT(int[] arr, int k) {
         if (k < 1 || k > arr.length) {
             return arr;
