@@ -158,6 +158,7 @@
     }
     
     //Morris遍历
+    //时间O(N) 空间O(1)
     static class Node {
         public int value;
         public Node left;
