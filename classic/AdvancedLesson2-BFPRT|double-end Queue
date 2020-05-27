@@ -1,5 +1,6 @@
     //BFPRT算法
-    //找到无序数组中最小的k个数
+    //找到无序数组中最小的k个数  O(N)的方法
+    //O(Nlogk) 也能做，大根堆维持k个数的堆
     public int[] getMinKNumsByBFPRT(int[] arr, int k) {
         if (k < 1 || k > arr.length) {
             return arr;
@@ -103,7 +104,7 @@
         }
     }
 
-    //双向链表实现的双端队列，求窗口的最大值
+    //双向链表实现的双端队列，求窗口的最大值 
     public int[] getMaxWindow(int[] arr, int w) {
         if (arr == null || w < 1 || w > arr.length) {
             return null;
@@ -126,7 +127,7 @@
         return res;
     }
 
-    //双端队列,求子数组最大值减去最小值小于等于num的子数组数量
+    //双端队列,求子数组最大值减去最小值小于等于num的子数组数量  时间复杂度O(N) 空间复杂度O(N)
     public static int getNum(int[] arr, int num) {
         if (arr == null || arr.length == 0 || num < 0) {
             return 0;
