@@ -104,7 +104,7 @@
         }
     }
 
-    //双向链表实现的双端队列，求窗口的最大值 
+    //双向链表实现的双端队列，求窗口的最大值 时间复杂度O(N)
     public int[] getMaxWindow(int[] arr, int w) {
         if (arr == null || w < 1 || w > arr.length) {
             return null;
