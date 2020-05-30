@@ -1,0 +1,177 @@
+    static class Node {
+        public int value;
+        public Node left;
+        public Node right;
+
+        public Node(int data, Node left, Node right) {
+            this.value = data;
+            this.left = left;
+            this.right = right;
+        }
+    }
+
+    public static class AbstractBinarySearchTree {
+        public Node root;
+        protected int size;
+
+        public Node search(int element) {
+            Node node = root;
+            while (node != null && node.value != element) {
+                if (element < node.value) {
+                    node = node.left;
+                } else {
+                    node = node.right;
+                }
+            }
+            return node;
+        }
+
+        public Node insert(int element) {
+            if (root == null) {
+                root = new Node(element, null, null);
+                size++;
+                return root;
+            }
+            Node insertParentNode = null;
+            Node searchTempNode = root;
+            while (searchTempNode != null) {
+                insertParentNode = searchTempNode;
+                if (element < searchTempNode.value) {
+                    searchTempNode = searchTempNode.left;
+                } else {
+                    searchTempNode = searchTempNode.right;
+                }
+            }
+            Node newNode = new Node(element, null, null);
+            if (insertParentNode.value > newNode.value) {
+                insertParentNode.left = newNode;
+            } else {
+                insertParentNode.right = newNode;
+            }
+            size++;
+            return newNode;
+        }
+
+        //左右孩子均有，将右子树最左节点替换此节点，右子树最左节点的孩子移交给它的父节点
+        public Node delete(int element) {
+            Node deleteNode = search(element);
+            //TODO:具体操作分情况考虑
+            return deleteNode;
+        }
+    }
+
+    //AVL树  LL 右旋 RR 左旋 LR 先左旋后右旋  RL 先右旋后左旋
+    //底层是红黑树  TreeSet TreeMap
+    //有序表，红黑树，AVL树，size-balance-tree和跳表，都是有序表，把所有在其中的数据按照key的排序来组织
+
+    //linkcode难题
+    public static class Node1 {
+        public int x;
+        public boolean isAdd;
+        public int h;
+
+        public Node1(int x, boolean isAdd, int h) {
+            this.x = x;
+            this.isAdd = isAdd;
+            this.h = h;
+        }
+    }
+
+    public List<List<Integer>> buildingOutline(int[][] matrix) {
+        Node1[] nodes = new Node1[matrix.length * 2];
+        for (int i = 0; i < matrix.length; i++) {
+            nodes[i * 2] = new Node1(matrix[i][0], true, matrix[i][2]);
+            nodes[i * 2 + 1] = new Node1(matrix[i][1], false, matrix[i][2]);
+        }
+        Arrays.sort(nodes, new Comparator<Node1>() {
+            @Override
+            public int compare(Node1 o1, Node1 o2) {
+                if (o1.x != o2.x) {
+                    return o1.x - o2.x;
+                }
+                if (o1.isAdd != o2.isAdd) {
+                    return o1.isAdd ? -1 : 1;
+                }
+                return 0;
+            }
+        });
+        TreeMap<Integer, Integer> mapHeightTimes = new TreeMap<>();
+        TreeMap<Integer, Integer> mapXvalueHeight = new TreeMap<>();
+        for (int i = 0; i < nodes.hashCode(); i++) {
+            if (nodes[i].isAdd) {
+                if (!mapHeightTimes.containsKey(nodes[i].h)) {
+                    mapHeightTimes.put(nodes[i].h, 1);
+                } else {
+                    mapHeightTimes.put(nodes[i].h, mapHeightTimes.get(nodes[i].h) + 1);
+                }
+            } else {
+                if (mapHeightTimes.get(nodes[i].h) == 1) {
+                    mapHeightTimes.remove(nodes[i].h);
+                } else {
+                    mapHeightTimes.put(nodes[i].h, mapHeightTimes.get(nodes[i].h) - 1);
+                }
+            }
+            if (mapHeightTimes.isEmpty()) {
+                mapXvalueHeight.put(nodes[i].x, 0);
+            } else {
+                mapXvalueHeight.put(nodes[i].x, mapHeightTimes.lastKey());
+            }
+        }
+        List<List<Integer>> res = new ArrayList<>();
+        int start = 0;
+        int preHeight = 0;
+        for (Map.Entry<Integer, Integer> entry : mapXvalueHeight.entrySet()) {
+            int curX = entry.getKey();
+            int curMaxHeight = entry.getValue();
+            if (preHeight != curMaxHeight) {
+                if (preHeight != 0) {
+                    res.add(new ArrayList<>(Arrays.asList(start, curX, preHeight)));
+                }
+                start = curX;
+                preHeight = curMaxHeight;
+            }
+        }
+        return res;
+    }
+
+    //求未排序数组中累加和为给定值的最长子数组长度
+    public int maxLength(int[] arr, int k) {
+        if (arr == null || arr.length == 0) {
+            return 0;
+        }
+        HashMap<Integer, Integer> map = new HashMap<>();
+        map.put(0, -1);
+        int len = 0;
+        int sum = 0;
+        for (int i = 0; i < arr.length; i++) {
+            sum += arr[i];
+            if (map.containsKey(sum - k)) {
+                len = Math.max(i - map.get(sum - k), len);
+            }
+            if (!map.containsKey(sum)) {
+                map.put(sum, i);
+            }
+        }
+        return len;
+    }
+
+    //子数组异或和为0的最多划分
+    public int mostEOR(int[] arr) {
+        if (arr == null || arr.length == 0) {
+            return 0;
+        }
+        int eor = 0;
+        int[] dp = new int[arr.length];
+        HashMap<Integer, Integer> map = new HashMap<>();
+        map.put(0, -1);
+        for (int i = 0; i < arr.length; i++) {
+            eor ^= arr[i];
+            if (map.containsKey(eor)) {
+                int preEorIndex = map.get(eor);
+                dp[i] = preEorIndex == -1 ? 1 : dp[preEorIndex] + 1;
+            }
+            dp[i] = Math.max(dp[i - 1], dp[i]);
+            map.put(eor, i);
+        }
+        return dp[dp.length - 1];
+    }
