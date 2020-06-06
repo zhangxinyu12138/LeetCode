@@ -1,0 +1,183 @@
+public class Lesson6 {
+
+    //公式字符串求值
+    public int getValue(String exp) {
+        return value(exp.toCharArray(), 0)[0];
+    }
+
+    //Deque为双端队列,(double-ended queue)一种具有队列和栈的性质的数据结构
+    public int[] value(char[] chars, int i) {
+        Deque<String> deq = new LinkedList<>();
+        int pre = 0;
+        int[] bra = null;
+        while (i < chars.length && chars[i] != ')') {
+            if (chars[i] >= '0' && chars[i] <= '9') {
+                pre = pre * 10 + chars[i++] - '0';
+            } else if (chars[i] != '(') {
+                addNum(deq, pre);
+                deq.addLast(String.valueOf(chars[i++]));
+                pre = 0;
+            } else {
+                bra = value(chars, i + 1);
+                pre = bra[0];
+                i = bra[1] + 1;
+            }
+        }
+        addNum(deq, pre);
+        return new int[]{getNum(deq), i};
+    }
+
+    public void addNum(Deque<String> deq, int num) {
+        if (!deq.isEmpty()) {
+            int cur = 0;
+            String top = deq.pollLast();
+            if (top.equals("+") || top.equals("-")) {
+                deq.addLast(top);
+            } else {
+                cur = Integer.valueOf(deq.pollLast());
+                num = top.equals("*") ? (cur * num) : (cur / num);
+            }
+        }
+        deq.addLast(String.valueOf(num));
+    }
+
+    public int getNum(Deque<String> deq) {
+        int res = 0;
+        boolean add = true;
+        String cur = null;
+        int num = 0;
+        while (!deq.isEmpty()) {
+            cur = deq.pollFirst();
+            if (cur.equals("+")) {
+                add = true;
+            } else if (cur.equals('-')) {
+                add = false;
+            } else {
+                num = Integer.valueOf(cur);
+                res += add ? num : (-num);
+            }
+        }
+        return res;
+    }
+
+    public static void main(String[] args) {
+        String s = "3+(1*4)";
+        Lesson6 test = new Lesson6();
+        System.out.println(test.getValue(s));
+
+    }
+
+    static class Node {
+        public int value;
+        public Node left;
+        public Node right;
+
+        public Node(int data) {
+            this.value = data;
+        }
+    }
+
+    //判断一棵树是否为完全二叉树(初级班讲过，第5课）
+    public static boolean isCBT(Node head) {
+        if (head == null) {
+            return true;
+        }
+        Queue<Node> queue = new LinkedList<>();
+        boolean leaf = false;
+        Node l = null;
+        Node r = null;
+        queue.offer(head);
+        while (!queue.isEmpty()) {
+            head = queue.poll();
+            l = head.left;
+            r = head.right;
+            if ((leaf && (l != null || r != null)) || (l == null && r != null)) {
+                return false;
+            }
+            if (l != null) {
+                queue.offer(l);
+            }
+            if (r != null) {
+                queue.offer(r);
+            }
+            if (l == null || r == null) {
+                leaf = true;
+            }
+        }
+        return true;
+    }
+
+    //跳表
+    public static class SkipListNode {
+        public Integer value;
+        public ArrayList<SkipListNode> nextNodes; //第i个元素表示这个节点在第i层上下一个节点是什么
+
+        public SkipListNode(Integer value) {
+            this.value = value;
+            nextNodes = new ArrayList<>();
+        }
+    }
+
+
+    public static class SkipList {
+        private SkipListNode head; //巨小,最前面的链表
+        private int maxLevel;    //所有数据最大层
+        private int size;
+        private static final double PROBABILITY = 0.5;
+
+        public SkipList() {
+            size = 0;
+            maxLevel = 0;
+            head = new SkipListNode(null);
+            head.nextNodes.add(null);
+
+        }
+
+        public SkipListNode getHead() {
+            return head;
+        }
+
+        public void add(Integer newValue) {
+            if (!contains(newValue)) {
+                size++;
+                int level = 0;
+                while (Math.random() < PROBABILITY) {
+                    level++;
+                }
+                while (level > maxLevel) {
+                    head.nextNodes.add(null);
+                    maxLevel++;
+                }
+                SkipListNode newNode = new SkipListNode(newValue);
+                //总是从头部最高层开始找
+                SkipListNode current = head;
+                //每次从最高层开始找
+                int levelAll = maxLevel;
+                do {
+                    current = findNext(newValue, current, levelAll);
+                    //前后节点连接
+                    if (level >= levelAll) {
+                        newNode.nextNodes.add(0, current.nextNodes.get(level));
+                        current.nextNodes.set(level, newNode);
+                        level--;
+                    }
+
+                } while (level-- > 0);
+            }
+        }
+
+        private SkipListNode findNext(Integer e, SkipListNode current, int level) {
+            SkipListNode next = current.nextNodes.get(level);
+            while (next != null) {
+                Integer value = next.value;
+                if (e < value) {
+                    break;
+                }
+                //链表中最后一个小于添加值e的节点
+                current = next;
+                next = current.nextNodes.get(level);
+            }
+            return current;
+        }
+    }
+}
