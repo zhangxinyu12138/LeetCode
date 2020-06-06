@@ -1,0 +1,149 @@
+//树形dp
+public class Lesson5 {
+
+    static class Node {
+        public int value;
+        public Node left;
+        public Node right;
+
+        public Node(int data, Node left, Node right) {
+            this.value = data;
+            this.left = left;
+            this.right = right;
+        }
+    }
+
+    //二叉树中最大二叉搜索子树的头结点
+    static class ReturnType {
+        public Node maxBSTHead;
+        public int maxBSTSize;
+        public int max;
+        public int min;
+
+        public ReturnType(Node maxBSTHead, int maxBSTSize, int min, int max) {
+            this.maxBSTHead = maxBSTHead;
+            this.maxBSTSize = maxBSTSize;
+            this.min = min;
+            this.max = max;
+        }
+    }
+
+    public ReturnType process(Node X) {
+        //base case
+        if (X == null) {
+            return new ReturnType(null, 0, Integer.MAX_VALUE, Integer.MIN_VALUE);
+        }
+        ReturnType lData = process(X.left);
+        ReturnType rData = process(X.right);
+        int min = Math.min(X.value, Math.min(lData.min, rData.min));
+        int max = Math.max(X.value, Math.max(lData.max, rData.max));
+        int maxBSTSize = Math.max(lData.maxBSTSize, rData.maxBSTSize);
+        Node maxBSTHead = lData.maxBSTSize >= rData.maxBSTSize ? lData.maxBSTHead : rData.maxBSTHead;
+        if (lData.maxBSTHead == X.left && rData.maxBSTHead == X.right && lData.max < X.value && rData.min > X.value) {
+            maxBSTHead = X;
+            maxBSTSize = lData.maxBSTSize + rData.maxBSTSize + 1;
+        }
+        return new ReturnType(maxBSTHead, maxBSTSize, min, max);
+    }
+
+    public Node getMaxBST(Node head) {
+        return process(head).maxBSTHead;
+    }
+
+
+    //二叉树节点间的最大距离问题
+    static class ReturnType2 {
+        public int maxDistance;
+        public int height;
+
+        public ReturnType2(int maxDistance, int height) {
+            this.maxDistance = maxDistance;
+            this.height = height;
+        }
+    }
+
+    public ReturnType2 process2(Node head) {
+        if (head == null) {
+            return new ReturnType2(0, 0);
+        }
+        ReturnType2 leftData = process2(head.left);
+        ReturnType2 rightData = process2(head.right);
+        int height = Math.max(leftData.height, rightData.height) + 1;
+        int maxDistance = Math.max(leftData.height + rightData.height + 1, Math.max(leftData.maxDistance,
+                rightData.maxDistance));
+        return new ReturnType2(maxDistance, height);
+    }
+
+    public int getMaxDistance(Node head) {
+        return process2(head).maxDistance;
+    }
+
+
+    //派对的最大快乐值
+    static class Employee {
+        public int happy;
+        List<Employee> subordinates;
+    }
+
+    static class ReturnData {
+        public int yesHeadMax;
+        public int noHeadMax;
+
+        public ReturnData(int yesHeadMax, int noHeadMax) {
+            this.yesHeadMax = yesHeadMax;
+            this.noHeadMax = noHeadMax;
+        }
+    }
+
+    public static ReturnData process3(Employee X) {
+        int yesX = X.happy;
+        int noX = 0;
+        if (X.subordinates.isEmpty()) {
+            return new ReturnData(yesX, noX);
+        } else {
+            for (Employee next : X.subordinates) {
+                ReturnData subTreeInfo = process3(next);
+                yesX += subTreeInfo.noHeadMax;
+                noX += Math.max(subTreeInfo.yesHeadMax, subTreeInfo.noHeadMax);
+            }
+            return new ReturnData(yesX, noX);
+        }
+    }
+
+    public int getMaxHappy(Employee boss) {
+        ReturnData allTreeInfo = process3(boss);
+        return Math.max(allTreeInfo.noHeadMax, allTreeInfo.yesHeadMax);
+    }
+
+    //判断二叉树是否为平衡二叉树
+    static class ReturnType3 {
+        public boolean isBalanced;
+        public int height;
+
+        public ReturnType3(boolean isBalanced, int height) {
+            this.isBalanced = isBalanced;
+            this.height = height;
+        }
+    }
+
+    public ReturnType3 process4(Node head) {
+        if (head == null) return new ReturnType3(true, 0);
+        ReturnType3 leftData = process4(head.left);
+        if (!leftData.isBalanced) {
+            return new ReturnType3(false, 0);
+        }
+        ReturnType3 rightData = process4(head.right);
+        if (!rightData.isBalanced) {
+            return new ReturnType3(false, 0);
+        }
+        if (Math.abs(leftData.height - rightData.height) > 1) {
+            return new ReturnType3(false, 0);
+        }
+        int height = Math.max(leftData.height, rightData.height) + 1;
+        return new ReturnType3(true, height);
+    }
+
+    public boolean isBalanced(Node head) {
+        return process4(head).isBalanced;
+    }
+}
