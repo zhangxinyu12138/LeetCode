@@ -1,0 +1,198 @@
+    //前缀树应用，子数组的最大异或和
+    static class Node {
+        public Node[] nexts = new Node[2];
+    }
+
+    static class NumTrie {
+        public Node head = new Node();
+
+        public void add(int newNum) {
+            Node cur = head;
+            for (int move = 31; move >= 0; move--) {
+                int path = ((newNum >> move) & 1);
+                cur.nexts[path] = cur.nexts[path] == null ? new Node() : cur.nexts[path];
+                cur = cur.nexts[path];
+            }
+        }
+
+        public int maxXor(int eorj) {
+            Node cur = head;
+            int res = 0;
+            for (int move = 31; move >= 0; move--) {
+                int path = ((eorj >> move) & 1);
+                int best = move == 31 ? path : (path ^ 1);
+                best = cur.nexts[best] == null ? (best ^ 1) : best;
+                res |= (path ^ best) << move;
+                cur = cur.nexts[best];
+            }
+            return res;
+        }
+    }
+
+    public int maxXorSubarray(int[] arr) {
+        if (arr == null || arr.length == 0) {
+            return 0;
+        }
+        int max = Integer.MIN_VALUE;
+        int eor = 0;
+        NumTrie numTrie = new NumTrie();
+        numTrie.add(0);
+        for (int j = 0; j < arr.length; j++) {
+            eor ^= arr[j];
+            max = Math.max(max, numTrie.maxXor(eor));
+            numTrie.add(eor);
+        }
+        return max;
+    }
+
+
+    //dp  换钱的方法数
+    // 暴力递归化动态规划
+    public int coins1(int[] arr, int aim) {
+        if (arr == null || arr.length == 0 || aim < 0) {
+            return 0;
+        }
+        return process1(arr, 0, aim);
+    }
+
+    public int process1(int[] arr, int index, int aim) {
+        int res = 0;
+        if (index == arr.length) {
+            res = aim == 0 ? 1 : 0;
+        } else {
+            for (int i = 0; arr[index] * i <= aim; i++) {
+                res += process1(arr, index + 1, aim - arr[index] * i);
+            }
+        }
+        return res;
+    }
+
+    //暴力递归改记忆化搜索
+    public int coins2(int[] arr, int aim) {
+        if (arr == null || arr.length == 0 || aim < 0) {
+            return 0;
+        }
+        int[][] map = new int[arr.length + 1][aim + 1];
+        return process2(arr, 0, aim, map);
+    }
+
+    public int process2(int[] arr, int index, int aim, int[][] map) {
+        int res = 0;
+        if (index == arr.length) {
+            res = aim == 0 ? 1 : 0;
+        } else {
+            int mapValue = 0;
+            for (int i = 0; arr[index] * i <= aim; i++) {
+                mapValue = map[index + 1][aim - arr[index] * i];
+                if (mapValue != 0) {
+                    res += mapValue == -1 ? 0 : mapValue;
+                } else {
+                    res += process2(arr, index + 1, aim - arr[index] * i, map);
+                }
+            }
+        }
+        map[index][aim] = res == 0 ? -1 : res;
+        return res;
+    }
+
+    //初步动态规划-完全按照暴力递归或者记忆化搜索来转换
+    public int coins3(int[] arr, int aim) {
+        if (arr == null || arr.length == 0 || aim < 0) {
+            return 0;
+        }
+        int[][] dp = new int[arr.length][aim + 1];
+        for (int i = 0; i < arr.length; i++) {
+            dp[i][0] = 1;
+        }
+        for (int j = 1; arr[0] * j <= aim; j++) {
+            dp[0][arr[0] * j] = 1;
+        }
+        int num = 0;
+        for (int i = 1; i < arr.length; i++) {
+            for (int j = 1; j <= aim; j++) {
+                num = 0;
+                for (int k = 0; j - arr[i] * k >= 0; k++) {
+                    num += dp[i - 1][j - arr[i] * k];
+                }
+                dp[i][j] = num;
+            }
+        }
+        return dp[arr.length - 1][aim];
+    }
+
+    //优化初步动态规划，把枚举值做转化
+    public int coins4(int[] arr, int aim) {
+        if (arr == null || arr.length == 0 || aim < 0) {
+            return 0;
+        }
+        int[][] dp = new int[arr.length][aim + 1];
+        for (int i = 0; i < arr.length; i++) {
+            dp[i][0] = 1;
+        }
+        for (int j = 1; j <= aim; j++) {
+            dp[0][arr[0] * j] = 1;
+        }
+        int num = 0;
+        for (int i = 1; i < arr.length; i++) {
+            for (int j = 1; j <= aim; j++) {
+                dp[i][j] = dp[i - 1][j];
+                dp[i][j] += j - arr[i] >= 0 ? dp[i][j - arr[i]] : 0;
+            }
+        }
+        return dp[arr.length - 1][aim];
+    }
+
+    //动态规划的空间压缩版本
+    public int coins5(int[] arr, int aim) {
+        if (arr == null || arr.length == 0 || aim < 0) {
+            return 0;
+        }
+        int[] dp = new int[aim + 1];
+        for (int j = 0; arr[0] * j <= aim; j++) {
+            dp[arr[0] * j] = 1;
+        }
+        for (int i = 1; i < arr.length; i++) {
+            for (int j = 1; j <= aim; j++) {
+                dp[j] += j - arr[i] >= 0 ? dp[j - arr[i]] : 0;
+            }
+        }
+        return dp[aim];
+    }
+
+    //排成一条线的纸牌博弈问题
+    public int win1(int[] arr) {
+        if (arr == null || arr.length == 0) {
+            return 0;
+        }
+        return Math.max(f(arr, 0, arr.length - 1), s(arr, 0, arr.length - 1));
+    }
+
+    public int f(int[] arr, int i, int j) {
+        if (i == j) {
+            return arr[j];
+        }
+        return Math.max(arr[i] + s(arr, i + 1, j), arr[j] + s(arr, i, j - 1));
+    }
+
+    public int s(int[] arr, int i, int j) {
+        if (i == j) {
+            return 0;
+        }
+        return Math.min(f(arr, i + 1, j), f(arr, i, j - 1));
+    }
+
+    public int win2(int[] arr) {
+        if (arr == null || arr.length == 0) {
+            return 0;
+        }
+        int[][] f = new int[arr.length][arr.length];
+        int[][] s = new int[arr.length][arr.length];
+        for (int j = 0; j < arr.length; j++) {
+            f[j][j] = arr[j];
+            for (int i = j - 1; i >= 0; i--) {
+                f[i][j] = Math.max(arr[i] + s[i + 1][j], arr[j] + s[i][j - 1]);
+                s[i][j] = Math.min(f[i + 1][j], f[i][j - 1]);
+            }
+        }
+        return Math.max(f[0][arr.length - 1], s[0][arr.length - 1]);
+    }
