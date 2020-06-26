@@ -1,0 +1,152 @@
+    //预处理，前缀累加和数组
+    //切三刀是否能将数组分成累加和相等的四个部分
+    public static boolean canSplit(int[] arr) {
+        if (arr == null || arr.length < 7) {
+            return false;
+        }
+        HashMap<Integer, Integer> map = new HashMap<>();
+        int sum = arr[0];
+        for (int i = 1; i < arr.length; i++) {
+            map.put(sum, i);
+            sum += arr[i];
+        }
+        int lsum = arr[0];
+        for (int s1 = 1; s1 < arr.length - 5; s1++) {
+            int checkSum = lsum * 2 + arr[s1];
+            if (map.containsKey(checkSum)) {
+                int s2 = map.get(checkSum);
+                checkSum += lsum + arr[s2];
+                if (map.containsKey(checkSum)) {
+                    int s3 = map.get(checkSum);
+                    if (checkSum + arr[s3] + lsum == sum) {
+                        return true;
+                    }
+                }
+            }
+            lsum += arr[s1];
+        }
+        return false;
+    }
+
+    //寻找第N个丑数，丑数含义为：因子仅由2，3，5构成
+    public int uglyNumber(int n) {
+        int[] help = new int[n];
+        help[0] = 1;
+        int i2 = 0;
+        int i3 = 0;
+        int i5 = 0;
+        int index = 1;
+        while (index < n) {
+            help[index] = Math.min(2 * help[i2], Math.min(3 * help[i2], 5 * help[i5]));
+            if (help[index] == 2 * help[i2]) {
+                i2++;
+            }
+            if (help[index] == 3 * help[i3]) {
+                i3++;
+            }
+            if (help[index] == 5 * help[i5]) {
+                i5++;
+            }
+            index++;
+        }
+        return help[index - 1];
+    }
+
+    //需要排序的最短子数组长度
+    public int getMinLength(int[] arr) {
+        if (arr == null || arr.length < 2) {
+            return 0;
+        }
+        int min = arr[arr.length - 1];
+        int noMinIndex = -1;
+        for (int i = arr.length - 2; i >= 0; i--) {
+            if (arr[i] > min) {
+                noMinIndex = i;
+            } else {
+                min = Math.min(min, arr[i]);
+            }
+        }
+        if (noMinIndex == -1) {
+            return 0;
+        }
+        int max = arr[0];
+        int noMaxIndex = -1;
+        for (int i = 1; i < arr.length; i++) {
+            if (arr[i] < max) {
+                noMaxIndex = i;
+            } else {
+                max = Math.max(max, arr[i]);
+            }
+        }
+        return noMaxIndex - noMinIndex + 1;
+
+    }
+
+    //求正数数组的最小不可组成和(背包问题）
+    //dp[i][j]=Math.max(dp[i-1][j],dp[i-1][j-arr[i])
+    public int unformedSum2(int[] arr) {
+        if (arr == null || arr.length == 0) {
+            return 1;
+        }
+        int sum = 0;
+        int min = Integer.MAX_VALUE;
+        for (int i = 0; i < arr.length; i++) {
+            sum += arr[i];
+            min = Math.min(min, arr[i]);
+        }
+        boolean[] dp = new boolean[sum + 1];
+        dp[0] = true;
+        for (int i = 0; i < arr.length; i++) {
+            for (int j = sum; j >= arr[i]; j--) {
+                //背包问题，空间压缩
+                dp[j] = dp[j - arr[i]] ? true : dp[j];
+            }
+        }
+        for (int i = min; i < dp.length; i++) {
+            if (!dp[i]) {
+                return i;
+            }
+        }
+        return sum + 1;
+    }
+
+    //一定有一个正数为1，更简单的解法， cur>range+1不成立,直接把cur加到range上
+    public int unformedSum3(int[] arr) {
+        if (arr == null || arr.length == 0) {
+            return 0;
+        }
+        Arrays.sort(arr);
+        int range = 0;
+        for (int i = 0; i < arr.length; i++) {
+            if (arr[i] > range + 1) {
+                return range + 1;
+            } else {
+                range += arr[i];
+            }
+        }
+        return range + 1;
+    }
+
+    //加出整个范围所有的数最少还需几个数
+    public int minNeeds(int[] arr, int range) {
+        int needs = 0;
+        long touch = 0;
+        for (int i = 0; i < arr.length; i++) {
+            while (arr[i] > touch + 1) {
+                touch += touch + 1;
+                needs++;
+                if (touch >= range) {
+                    return needs;
+                }
+            }
+            touch += arr[i];
+            if (touch >= range) {
+                return needs;
+            }
+        }
+        while (range >= touch + 1) {
+            touch += touch + 1;
+            needs++;
+        }
+        return needs;
+    }
