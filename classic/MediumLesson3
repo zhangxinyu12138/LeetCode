@@ -1,0 +1,207 @@
+    //求两个数最大公约数不为1的节点组成的连通图
+    public int largestComponentSize2(int[] arr) {
+        UnionFindSet unionFindSet = new UnionFindSet(Arrays.asList(arr));
+        //key是某一个数的因子，value表示包含某个key因子的，其中一个数的位置
+        HashMap<Integer, Integer> factorMap = new HashMap<>();
+        for (int i = 0; i < arr.length; i++) {
+            int num = arr[i];
+            int limit = (int) Math.sqrt(num);
+            for (int j = 1; j <= limit; j++) {
+                if (num % j == 0) {
+                    if (j != 1) {
+                        if (!factorMap.containsKey(j)) {
+                            factorMap.put(j, i);
+                        } else {
+                            unionFindSet.union(factorMap.get(j), i);
+                        }
+                    }
+                    int other = num / j;
+                    if (other != 1) {
+                        if (!factorMap.containsKey(other)) {
+                            factorMap.put(other, i);
+                        } else {
+                            unionFindSet.union(factorMap.get(other), i);
+                        }
+                    }
+                }
+            }
+        }
+        return unionFindSet.maxSize();
+    }
+
+    public class Element<V> {
+        public V value;
+
+        public Element(V value) {
+            this.value = value;
+        }
+    }
+
+    public class UnionFindSet<V> {
+        public HashMap<V, Element<V>> elementMap;
+        public HashMap<Element<V>, Element<V>> fatherMap;
+        public HashMap<Element<V>, Integer> rankMap;
+
+        public UnionFindSet(List<V> list) {
+            elementMap = new HashMap<>();
+            fatherMap = new HashMap<>();
+            rankMap = new HashMap<>();
+            for (V value : list) {
+                Element<V> element = new Element<V>(value);
+                elementMap.put(value, element);
+                fatherMap.put(element, element);
+                rankMap.put(element, 1);
+            }
+        }
+
+        private Element<V> findHead(Element<V> element) {
+            Stack<Element<V>> path = new Stack<>();
+            while (element != fatherMap.get(element)) {
+                //把路径上的节点压栈，当两个节点合并后，会做一次整理
+                path.push(element);
+                element = fatherMap.get(element);
+            }
+            while (!path.isEmpty()) {
+                fatherMap.put(path.pop(), element);
+            }
+            return element;
+        }
+
+        public boolean isSameSet(V a, V b) {
+            if (elementMap.containsKey(a) && elementMap.containsKey(b)) {
+                return findHead(elementMap.get(a)) == findHead(elementMap.get(b));
+            }
+            return false;
+        }
+
+        public void union(V a, V b) {
+            if (elementMap.containsKey(a) && elementMap.containsKey(b)) {
+                Element<V> aF = findHead(elementMap.get(a));
+                Element<V> bF = findHead(elementMap.get(b));
+                if (aF != bF) {
+                    Element<V> big = rankMap.get(aF) > rankMap.get(bF) ? aF : bF;
+                    Element<V> small = big == aF ? bF : aF;
+                    fatherMap.put(small, big);
+                    rankMap.put(big, rankMap.get(aF) + rankMap.get(bF));
+                    rankMap.remove(small);
+                }
+            }
+        }
+
+        public int maxSize() {
+            int max = 0;
+            for (Map.Entry<Element<V>, Integer> entry : rankMap.entrySet()) {
+                max = Math.max(max, entry.getValue());
+            }
+            return max;
+        }
+    }
+
+    //贿赂怪兽问题（两个DP) d数组表示每个怪兽的能力值，p数组代表贿赂每个怪兽的花费
+    //递归解法
+    public static long process(int[] d, int[] p, int hp, int index) {
+        if (index == d.length) {
+            return 0;
+        }
+        if (hp < d[index]) {
+            return p[index] + process(d, p, hp + d[index], index + 1);
+        } else {
+            return Math.min(p[index] + process(d, p, hp + d[index], index + 1),
+                    process(d, p, hp, index + 1));
+        }
+    }
+
+    public static long func1(int[] d, int[] p) {
+        return process(d, p, 0, 0);
+    }
+
+    //递归变dp
+    public static long func2(int[] d, int[] p) {
+        int sum = 0;
+        for (int num : d) {
+            sum += num;
+        }
+        long[][] dp = new long[d.length + 1][sum + 1];
+        for (int i = 0; i <= sum; i++) {
+            dp[0][i] = 0;
+        }
+        for (int cur = d.length - 1; cur >= 0; cur--) {
+            for (int hp = 0; hp <= sum; hp++) {
+                //hp是递归过程中不会出现的状态，跳过
+                if (hp + d[cur] > sum) {
+                    continue;
+                }
+                if (hp < d[cur]) {
+                    dp[cur][hp] = p[cur] + dp[cur + 1][hp + d[cur]];
+                } else {
+                    dp[cur][hp] = Math.min(p[cur] + dp[cur + 1][hp + d[cur]], dp[cur + 1][hp]);
+                }
+            }
+        }
+        return dp[0][0];
+    }
+
+    //通过n个怪兽的最小花费(当总钱数不大而总武力值大的情况下）根据数据情况选择相应最恰当的方法
+    public static int func3(int[] d, int[] p) {
+        int sum = 0;
+        for (int num : p) {
+            sum += num;
+        }
+        //dp[i][j]含义：能经过0~i怪兽，且花钱的严格等于j时的武力值最大是多少？
+        //dp[i][j]=-1表示花j的钱是无法通过的
+        long[][] dp = new long[d.length][sum + 1];
+        for (int i = 0; i < dp.length; i++) {
+            for (int j = 0; j <= sum; j++) {
+                dp[i][j] = -1;
+            }
+        }
+        dp[0][p[0]] = d[0];
+        for (int i = 1; i < d.length; i++) {
+            for (int j = 0; j <= sum; j++) {
+                //为当前怪兽花钱,当前钱数足够贿赂且在钱数为j-p[i]时，可以通过i-1的怪兽
+                if (j >= p[i] && dp[i - 1][j - p[i]] != -1) {
+                    dp[i][j] = dp[i - 1][j - p[i]] + d[i];
+                }
+                //不为当前怪兽花钱
+                if (dp[i - 1][j] >= d[i]) {
+                    dp[i][j] = Math.max(dp[i][j], dp[i - 1][j]);
+                }
+            }
+        }
+        int ans = 0;
+        for (int j = 0; j <= sum; j++) {
+            if (dp[d.length - 1][j] != -1) {
+                ans = j;
+                break;
+            }
+        }
+        return ans;
+    }
+
+    //最长的可整合子数组的长度(不一定按照题目给定的标准验证，可以挖掘更简洁的标准，达到等效）
+    public int getLIL(int[] arr) {
+        if (arr == null || arr.length == 0) {
+            return 0;
+        }
+        int len = 0;
+        int max = 0;
+        int min = 0;
+        HashSet<Integer> set = new HashSet<>();
+        for (int i = 0; i < arr.length; i++) {
+            max = Integer.MIN_VALUE;
+            min = Integer.MAX_VALUE;
+            for (int j = i; j < arr.length; i++) {
+                if (set.contains(arr[j])) {
+                    break;
+                }
+                set.add(arr[j]);
+                max = Math.max(max, arr[j]);
+                min = Math.min(min, arr[j]);
+                if (max - min == j - i) {
+                    len = Math.max(len, j - i + 1);
+                }
+            }
+            set.clear();
+        }
+        return len;
+    }
