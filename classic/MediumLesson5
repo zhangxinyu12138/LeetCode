@@ -1,0 +1,240 @@
+    //添加最少字符使字符串整体都是回文字符串，复杂度N的平方
+    public int[][] getDP(char[] str) {
+        int[][] dp = new int[str.length][str.length];
+        for (int j = 1; j < str.length; j++) {
+            dp[j - 1][j] = str[j - 1] == str[j] ? 0 : 1;
+            for (int i = j - 2; i >= 0; i--) {
+                if (str[i] == str[j]) {
+                    dp[i][j] = dp[i + 1][j - 1];
+                } else {
+                    dp[i][j] = Math.min(dp[i + 1][j], dp[i][j - 1]) + 1;
+                }
+            }
+        }
+        return dp;
+    }
+
+    public String getPalindrome1(String str) {
+        if (str == null || str.length() < 2) {
+            return str;
+        }
+        char[] chas = str.toCharArray();
+        int[][] dp = getDP(chas);
+        char[] res = new char[chas.length + dp[0][chas.length - 1]];
+        int i = 0;
+        int j = chas.length - 1;
+        int resl = 0;
+        int resr = res.length - 1;
+        while (i <= j) {
+            if (chas[i] == chas[j]) {
+                res[resl++] = chas[i++];
+                res[resr--] = chas[j--];
+            } else if (dp[i][j - 1] < dp[i + 1][j]) {
+                res[resl++] = chas[j];
+                res[resr--] = chas[j--];
+            } else {
+                res[resl++] = chas[i];
+                res[resr--] = chas[i++];
+            }
+        }
+        return String.valueOf(res);
+    }
+
+    //进阶问题,复杂度O(N),"剥洋葱"的方法
+    //给定一个字符串str，再给定str的最长回文子序列字符串strlps，返回在添加字符最少的情况下，让str整体都是回文字符串的一种结果
+    public String getPalindrome2(String str, String strlps) {
+        if (str == null || str.equals("")) {
+            return "";
+        }
+        char[] chas = str.toCharArray();
+        char[] lps = strlps.toCharArray();
+        char[] res = new char[2 * chas.length - lps.length];
+        int chasl = 0;
+        int chasr = chas.length - 1;
+        int lpsl = 0;
+        int lpsr = lps.length - 1;
+        int resl = 0;
+        int resr = res.length - 1;
+        int tmpl = 0;
+        int tmpr = 0;
+        while (lpsl <= lpsr) {
+            //剥去一层回文子串
+            tmpl = chasl;
+            tmpr = chasr;
+            while (chas[chasl] != lps[lpsl]) {
+                chasl++;
+            }
+            while (chas[chasr] != lps[lpsr]) {
+                chasr--;
+            }
+            set(res, resl, resr, chas, tmpl, chasl, chasr, tmpr);
+            //把原字符串中的回文数放入
+            resl += chasl - tmpl + tmpr - chasr;
+            resr -= chasl - tmpl + tmpr - chasr;
+            res[resl++] = chas[chasl++];
+            res[resr--] = chas[chasr--];
+            lpsl++;
+            lpsl--;
+        }
+        return String.valueOf(res);
+    }
+
+    public void set(char[] res, int resl, int resr, char[] chas, int ls, int le, int rs, int re) {
+        for (int i = ls; i < le; i++) {
+            res[resl++] = chas[i];
+            res[resr--] = chas[i];
+        }
+        for (int i = re; i > rs; i--) {
+            res[resl++] = chas[i];
+            res[resr--] = chas[i];
+        }
+    }
+
+    //不重复打印排序数组中相加和为给定值的所有二元组和三元组
+    //二元组：双指针，left和right,不重复打印，判断arr[left]!=arr[left-1]||left==0
+    //三元组：每一个值作为三个数中的第一个值，在后续的数中找不重复二元组(找不重复二元组的过程与打印不重复二元组的过程一样）
+
+    //求矩阵中的最长递增路径含有的元素个数（可以往上下左右四个方向走）
+    //位置依赖不好整理，直接记忆化搜索
+    public int getLongestIncreasing(int[][] matrix) {
+        int N = matrix.length;
+        int M = matrix[0].length;
+        int ans = Integer.MIN_VALUE;
+        //递归函数的缓存（备忘录）
+        int[][] dp = new int[N][M];
+        for (int row = 0; row < N; row++) {
+            for (int col = 0; col < M; col++) {
+                ans = Math.max(ans, process(matrix, row, col, dp));
+            }
+        }
+        return ans;
+    }
+
+    public int process(int[][] matrix, int row, int col, int[][] dp) {
+        if (dp[row][col] != 0) {
+            return dp[row][col];
+        }
+        //尝试能不能走上
+        int nextUp = 0;
+        if (row - 1 >= 0 && matrix[row - 1][col] > matrix[row][col]) {
+            nextUp = process(matrix, row - 1, col, dp);
+        }
+        //尝试能不能走下
+        int nextDown = 0;
+        if (row + 1 < matrix.length && matrix[row + 1][col] > matrix[row][col]) {
+            nextDown = process(matrix, row + 1, col, dp);
+        }
+        //尝试能不能走左
+        int nextLeft = 0;
+        if (col - 1 >= 0 && matrix[row][col - 1] > matrix[row][col]) {
+            nextLeft = process(matrix, row, col - 1, dp);
+        }
+        //尝试能不能走右
+        int nextRight = 0;
+        if (col + 1 < matrix[0].length && matrix[row][col + 1] > matrix[row][col]) {
+            nextRight = process(matrix, row, col + 1, dp);
+        }
+        int ans = Math.max(Math.max(nextLeft, nextRight), Math.max(nextUp, nextDown)) + 1;
+        dp[row][col] = ans;
+        return ans;
+    }
+
+    //返回子数组小于等于K的最大累加和
+    public int lessOrEqualK(int[] arr, int K) {
+        TreeSet<Integer> prefixSum = new TreeSet<>();
+        //所有前缀和按照有序表组织
+        prefixSum.add(0);
+        int sum = 0;
+        int ans = 0;
+        //必须以i结尾的子数组，累加和<=K且最大的子数组和为多少
+        for (int i = 0; i < arr.length; i++) {
+            sum += arr[i];
+            int aim = sum - K;
+            //离aim最近的前缀累加和
+            int bestPrefix = prefixSum.ceiling(aim);
+            ans = sum - bestPrefix;
+        }
+        return ans;
+    }
+
+    //子数组的最大累加和
+    public int maxSum(int[] arr) {
+        if (arr == null || arr.length == 0) {
+            return 0;
+        }
+        int max = Integer.MIN_VALUE;
+        int cur = 0;
+        for (int i = 0; i < arr.length; i++) {
+            cur += arr[i];
+            max = Math.max(max, cur);
+            cur = cur < 0 ? 0 : cur;
+        }
+        return max;
+    }
+
+    //子矩阵的最大累加和
+    public int maxSum(int[][] m) {
+        if (m == null || m.length == 0 || m[0].length == 0) {
+            return 0;
+        }
+        int max = Integer.MIN_VALUE;
+        int cur = 0;
+        int[] s = null;
+        for (int i = 0; i < m.length; i++) {
+            s = new int[m[0].length];
+            for (int j = i; j < m.length; j++) {
+                cur = 0;
+                for (int k = 0; k < s.length; k++) {
+                    s[k] += m[j][k];
+                    cur += s[k];
+                    max = Math.max(max, cur);
+                    cur = cur < 0 ? 0 : cur;
+                }
+            }
+        }
+        return max;
+    }
+
+
+    //克隆无向图
+    static class Node {
+        int label;
+        List<Node> neighbors;
+
+        Node(int x) {
+            label = x;
+            neighbors = new ArrayList<>();
+        }
+    }
+
+    //bfs
+    public static Node cloneGraph(Node node) {
+        if (node == null) {
+            return null;
+        }
+        Node head = new Node(node.label);
+        LinkedList<Node> queue = new LinkedList<>();
+        //key:克隆节点所对应的原节点 value:克隆节点
+        HashMap<Node, Node> map = new HashMap<>();
+        queue.add(node);
+        map.put(node, head);
+        while (!queue.isEmpty()) {
+            Node cur = queue.poll();
+            //克隆后代节点
+            for (Node next : cur.neighbors) {
+                if (!map.containsKey(next)) {
+                    Node copy = new Node(next.label);
+                    map.put(next, copy);
+                    queue.add(next);
+                }
+            }
+        }
+        for (Map.Entry<Node, Node> entry : map.entrySet()) {
+            Node cur = entry.getKey();
+            Node copy = entry.getValue();
+            for (Node next : cur.neighbors) {
+                copy.neighbors.add(map.get(next));
+            }
+        }
+        return head;
+    }
