@@ -1,0 +1,219 @@
+    //在矩阵中寻找指定的word(上下左右）
+    //word组成前缀树
+    //整体深度遍历
+    //leetcode原题 ---word search
+    static class TrieNode {
+        public TrieNode[] nexts;
+        public int pass;
+        public int end;
+
+        public TrieNode() {
+            nexts = new TrieNode[26];
+            pass = 0;
+            end = 0;
+        }
+    }
+
+    public static void fillWord(TrieNode node, String word) {
+        node.pass++;
+        char[] chs = word.toCharArray();
+        int index = 0;
+        for (int i = 0; i < chs.length; i++) {
+            index = chs[i] - 'a';
+            if (node.nexts[index] == null) {
+                node.nexts[index] = new TrieNode();
+            }
+            node = node.nexts[index];
+            node.pass++;
+        }
+        node.end++;
+    }
+
+    public static List<String> findWords(char[][] board, String[] words) {
+        TrieNode head = new TrieNode();
+        HashSet<String> set = new HashSet<>();
+        for (String word : words) {
+            if (!set.contains(word)) {
+                fillWord(head, word);
+                set.add(word);
+            }
+        }
+        List<String> res = new ArrayList<>();
+        //记录从一个位置出发走过的路径
+        LinkedList<Character> path = new LinkedList<>();
+        for (int row = 0; row < board.length; row++) {
+            for (int col = 0; col < board[0].length; col++) {
+                process(board, row, col, path, head, res);
+            }
+        }
+        return res;
+    }
+
+    //返回值为从row,col出发一共找到多少个word
+    public static int process(char[][] board, int row, int col, LinkedList<Character> path, TrieNode cur, List<String> res) {
+        char cha = board[row][col];
+        //这个位置走过了
+        if (cha == 0) {
+            return 0;
+        }
+        int index = cha - 'a';
+        //不能在前缀树上继续走，可能没有这个单词也可能这个单词找过了(剪枝，优化常数时间的复杂度）
+        if (cur.nexts[index] == null || cur.nexts[index].pass == 0) {
+            return 0;
+        }
+        //前缀树中有相应字符
+        cur = cur.nexts[index];
+        path.addLast(cha);
+        //从row和col出发一共找到了多少答案
+        int fix = 0;
+        if (cur.end > 0) {
+            res.add(generatePath(path));
+            cur.end--;
+            fix++;
+        }
+        //上下左右四个方向尝试
+        board[row][col] = 0;
+        if (row > 0) {
+            fix += process(board, row - 1, col, path, cur, res);
+        }
+        if (row < board.length - 1) {
+            fix += process(board, row + 1, col, path, cur, res);
+        }
+        if (col > 0) {
+            fix += process(board, row, col - 1, path, cur, res);
+        }
+        if (col < board[0].length - 1) {
+            fix += process(board, row, col + 1, path, cur, res);
+        }
+        //改回来
+        board[row][col] = cha;
+        path.pollLast();
+        //当前节点的pass值减去所有答案的个数
+        cur.pass -= fix;
+        return fix;
+    }
+
+    public static String generatePath(LinkedList<Character> path) {
+        char[] str = new char[path.size()];
+        int index = 0;
+        for (Character cha : path) {
+            str[index++] = cha;
+        }
+        return String.valueOf(str);
+    }
+
+    //获取数组的最小值(数组可能有翻转）
+    //根据L、R、mid之间的大小关系，二分查找最小值
+    public static int getMin(int[] arr) {
+        int L = 0;
+        int R = arr.length - 1;
+        int mid = 0;
+        while (L < R) {
+            if (L == R - 1) {
+                break;
+            }
+            if (arr[L] < arr[R]) {
+                return arr[L];
+            }
+            mid = (L + R) / 2;
+            if (arr[L] > arr[mid]) {
+                R = mid;
+                continue;
+            }
+            if (arr[mid] > arr[R]) {
+                L = mid;
+                continue;
+            }
+            //arr[L]==arr[mid]==arr[R]
+            //手动把左半部分划过去
+            while (L < mid) {
+                if (arr[L] == arr[mid]) {
+                    L++;
+                } else if (arr[L] < arr[mid]) {
+                    return arr[L];
+                } else {
+                    R = mid;
+                    break;
+                }
+            }
+        }
+        return Math.min(arr[L], arr[R]);
+    }
+
+    //股票问题
+    //1.求只买一次的最大值
+    public int maxProfit(int[] prices) {
+        if (prices == null || prices.length == 0) {
+            return 0;
+        }
+        int min = prices[0];
+        int ans = 0;
+        for (int i = 0; i < prices.length; i++) {
+            min = Math.min(min, prices[i]);
+            ans = Math.max(ans, prices[i] - min);
+        }
+        return ans;
+    }
+
+    //买卖次数不限，但每次只能买卖一只股票
+    public int maxProfit2(int[] prices) {
+        if (prices == null || prices.length == 0) {
+            return 0;
+        }
+        int ans = 0;
+        for (int i = 0; i < prices.length; i++) {
+            if (prices[i] > prices[i - 1]) {
+                ans += prices[i] - prices[i - 1];
+            }
+        }
+        return ans;
+    }
+
+    //交易次数不超过K次，K超过N/2，相当于随便交易，因为长度为N的数组，最大连续上坡为N/2个
+    public int maxProfit3(int[] prices, int k) {
+        if (prices == null || prices.length == 0) {
+            return 0;
+        }
+        int n = prices.length;
+        if (k > n / 2) {
+            return maxProfit2(prices);
+        }
+        int[][][] dp = new int[n][k + 1][2];
+        for (int i = 0; i < n; i++) {
+            for (int j = k; j >= 1; j--) {
+                if (i - 1 == -1) {
+                    /* 处理 base case */
+                    dp[i][j][0] = 0;
+                    dp[i][j][1] = -prices[i];
+                    continue;
+                }
+                dp[i][j][0] = Math.max(dp[i - 1][k][0], dp[i - 1][k][1] + prices[i]);
+                dp[i][j][1] = Math.max(dp[i - 1][k][1], dp[i - 1][k - 1][0] - prices[i]);
+            }
+        }
+        return dp[n - 1][k][0];
+    }
+
+    //上面题的另一种解法
+    public int maxProfit4(int[] prices, int k) {
+        if (prices == null || prices.length == 0) {
+            return 0;
+        }
+        int n = prices.length;
+        if (k > n / 2) {
+            return maxProfit2(prices);
+        }
+        //s表示当前遍历到k的次数
+        int[][] dp = new int[k + 1][n];
+        for (int s = 1; s <= k; s++) {
+            //通过记录best减少重复的枚举
+            int best = Math.max(dp[s - 1][0] - prices[0], dp[s - 1][1] - prices[1]);
+            dp[s][1] = Math.max(dp[s][0], best + prices[1]);
+            for (int i = 2; i < n; i++) {
+                //更新之前的best
+                best = Math.max(best, dp[s - 1][i] - prices[i]);
+                dp[s][i] = Math.max(dp[s][i - 1], best + prices[i]);
+            }
+        }
+        return dp[k][n - 1];
+    }
