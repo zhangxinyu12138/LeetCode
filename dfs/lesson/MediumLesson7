@@ -1,0 +1,221 @@
+    //判断在一个可能旋转过的有序数组中是否存在某个数num
+    //只要L=M=R不成立，就不断二分
+    public static boolean isContains(int[] arr, int num) {
+        int L = 0;
+        int R = arr.length - 1;
+        int M = 0;
+        while (L <= R) {
+            M = (L + R) / 2;
+            if (arr[M] == num) {
+                return true;
+            }
+            if (arr[L] == arr[M] && arr[M] == arr[R]) {
+                while (L != M && arr[L] == arr[M]) {
+                    L++;
+                }
+                if (L == M) {
+                    L = M + 1;
+                    continue;
+                }
+            }
+            if (arr[L] != arr[M]) {
+                //L和M直接无断点
+                if (arr[M] > arr[L]) {
+                    if (num >= arr[L] && num < arr[M]) {
+                        R = M - 1;
+                    } else {
+                        L = M + 1;
+                    }
+                } else {
+                    if (num > arr[M] && num <= arr[R]) {
+                        L = M + 1;
+                    } else {
+                        R = M - 1;
+                    }
+                }
+            } else {  //arr[M]!=arr[R]
+                if (arr[M] < arr[R]) {
+                    if (num > arr[M] && num <= arr[R]) {
+                        L = M + 1;
+                    } else {
+                        R = M - 1;
+                    }
+                } else {
+                    if (num >= arr[L] && num < arr[M]) {
+                        R = M - 1;
+                    } else {
+                        L = M + 1;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    //求S有多少子序列与T相同
+    public static int numDistinct(String S, String T) {
+        char[] s = S.toCharArray();
+        char[] t = T.toCharArray();
+        int[][] dp = new int[s.length + 1][t.length + 1];
+        for (int j = 0; j <= t.length; j++) {
+            dp[0][j] = 0;
+        }
+        for (int i = 0; i <= s.length; i++) {
+            dp[i][0] = 1;
+        }
+        for (int i = 1; i <= s.length; i++) {
+            for (int j = 1; j <= t.length; j++) {
+                //S的子序列不以i结尾去和T匹配，如果i结尾可以和T结尾匹配，需要加上dp[i-1][j-1]
+                dp[i][j] = dp[i - 1][j] + (s[i - 1] == t[j - 1] ? dp[i - 1][j - 1] : 0);
+            }
+        }
+        return dp[s.length][t.length];
+    }
+
+    //给定一个字符串，在其中添加+、-、*、/、不加，使之结果为target(递归做法）,返回所有可能结果
+    public static List<String> getAllResult(String num, int target) {
+        List<String> ans = new ArrayList<>();
+        char[] str = num.toCharArray();
+        process(str, 0, target, "", ans);
+        return ans;
+    }
+
+    //str[0...index-1]决定已经做完了，都在path里
+    //轮到index位置的字符，决定它后面的符号
+    //最终搞出target的决定，保存到ans中去
+    public static void process(char[] str, int index, int target, String path, List<String> ans) {
+        if (index == str.length) {
+            char last = path.charAt(path.length() - 1);
+            path = (last == '+' || last == '-' || last == '*') ? path.substring(0, path.length() - 1) : path;
+            if (check(path, target)) {
+                ans.add(path);
+            }
+            return;
+        }
+        String p0 = String.valueOf(str[index]);
+        String p1 = p0 + "+";
+        String p2 = p0 + "-";
+        String p3 = p0 + "*";
+        process(str, index + 1, target, path + p0, ans);
+        process(str, index + 1, target, path + p1, ans);
+        process(str, index + 1, target, path + p2, ans);
+        process(str, index + 1, target, path + p3, ans);
+    }
+
+    public static boolean check(String path, int target) {
+        //黑盒，判断表达式的值是否与target相等
+        return true;
+    }
+
+    //递归的过程中计算结果,为前一个数做决定，添加字符
+    public static List<String> addOperators(String num, int target) {
+        List<String> res = new LinkedList<>();
+        if (num.length() == 0) {
+            return res;
+        }
+        char[] path = new char[num.length() * 2 - 1];
+        char[] digits = num.toCharArray();
+        long n = 0;
+        //尝试0~i前缀作为第一部分
+        for (int i = 0; i < digits.length; i++) {
+            n = n * 10 + digits[i] - '0';
+            path[i] = digits[i];
+            dfs(res, path, i + 1, 0, n, digits, i + 1, target);
+            if (n == 0) {
+                break;
+            }
+        }
+        return res;
+    }
+
+
+    public static void dfs(List<String> res, char[] path, int len, long left, long cur, char[] num, int index, int target) {
+        if (index == num.length) {
+            if (left + cur == target) {
+                res.add(new String(path, 0, len));
+            }
+            return;
+        }
+        long n = 0;
+        int j = len + 1;
+        for (int i = index; i < num.length; i++) {
+            n = n * 10 + num[i] - '0';
+            path[j++] = num[i];
+            path[len] = '+';
+            dfs(res, path, j, left + cur, n, num, i + 1, target);
+            path[len] = '-';
+            dfs(res, path, j, left + cur, -n, num, i + 1, target);
+            path[len] = '*';
+            dfs(res, path, j, left, cur * n, num, i + 1, target);
+            if (num[index] == '0') {
+                break;
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        List<String> res = Lesson7.addOperators("105", 5);
+        res.forEach(r -> System.out.println(r));
+    }
+
+    //ZigZag打印二叉树
+    //可以拿两个栈实现，也可以用双端队列实现两个栈(采用这种更优秀的方法）
+    static class Node {
+        public int value;
+        public Node left;
+        public Node right;
+
+        public Node(int data) {
+            this.value = data;
+        }
+    }
+
+    public void printByZigZag(Node head) {
+        if (head == null) {
+            return;
+        }
+        Deque<Node> dq = new LinkedList<>();
+        int level = 1;
+        boolean lr = true;
+        Node last = head;
+        Node nLast = null;
+        dq.offerFirst(head);
+        printLevelAndOrientation(level++, lr);
+        while (!dq.isEmpty()) {
+            if (lr) {
+                head = dq.pollFirst();
+                if (head.left != null) {
+                    nLast = nLast == null ? head.left : nLast;
+                    dq.offerLast(head.left);
+                }
+                if (head.right != null) {
+                    nLast = nLast == null ? head.right : nLast;
+                    dq.offerLast(head.right);
+                }
+            } else {
+                head = dq.peekLast();
+                if (head.right != null) {
+                    nLast = nLast == null ? head.right : nLast;
+                    dq.offerFirst(head.right);
+                }
+                if (head.left != null) {
+                    nLast = nLast == null ? head.left : nLast;
+                    dq.offerFirst(head.left);
+                }
+            }
+            System.out.print(head.value + " ");
+            if (head == last && !dq.isEmpty()) {
+                lr = !lr;
+                last = nLast;
+                nLast = null;
+                System.out.println();
+                printLevelAndOrientation(level++, lr);
+            }
+        }
+        System.out.println();
+    }
+
+    public void printLevelAndOrientation(int level, boolean lr) {
+        System.out.print("Level " + level + " from");
+        System.out.print(lr ? "left to right: " : "right to left: ");
+    }
