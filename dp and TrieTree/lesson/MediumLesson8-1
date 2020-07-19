@@ -1,0 +1,216 @@
+    //龙与地下城游戏（走网格会掉血或者加血）
+    public int minHP1(int[][] m) {
+        if (m == null || m.length == 0 || m[0] == null || m[0].length == 0) {
+            return 1;
+        }
+        int row = m.length;
+        int col = m[0].length;
+        int[][] dp = new int[row][col];
+        row--;
+        col--;
+        dp[row][col] = m[row][col] > 0 ? 1 : -m[row][col] + 1;
+        for (int j = col - 1; j >= 0; j--) {
+            dp[row][j] = Math.max(dp[row][j + 1] - m[row][j], 1);
+        }
+        for (int i = row - 1; i >= 0; i--) {
+            dp[i][col] = Math.max(dp[i + 1][col] - m[i][col], 1);
+        }
+        int right = 0;
+        int down = 0;
+        for (int i = row - 1; i >= 0; i--) {
+            for (int j = col - 1; j >= 0; j--) {
+                right = Math.max(dp[i][j + 1] - m[i][j], 1);
+                down = Math.max(dp[i + 1][j] - m[i][j], 1);
+                dp[i][j] = Math.min(right, down);
+            }
+        }
+        return dp[0][0];
+    }
+
+    //二叉树从任意节点出发的路径和
+    public static class Node {
+        int value;
+        public Node left;
+        public Node right;
+    }
+
+    public static class Info {
+        public int maxPathSum;
+        public int headMaxPathSum;
+
+        public Info(int m, int h) {
+            maxPathSum = m;
+            headMaxPathSum = h;
+        }
+    }
+
+    public static Info process(Node x) {
+        if (x == null) {
+            return null;
+        }
+        Info leftData = process(x.left);
+        Info rightData = process(x.right);
+        //和x无关
+        int maxPathSumP1 = Integer.MIN_VALUE;
+        if (leftData != null) {
+            maxPathSumP1 = Math.max(maxPathSumP1, leftData.maxPathSum);
+        }
+        if (rightData != null) {
+            maxPathSumP1 = Math.max(maxPathSumP1, rightData.maxPathSum);
+        }
+        //和x有关的情况
+        int maxPathSumP2 = x.value;
+        int maxPathSumP3 = leftData != null ? x.value + leftData.headMaxPathSum : Integer.MIN_VALUE;
+        int maxPathSumP4 = rightData != null ? x.value + rightData.headMaxPathSum : Integer.MIN_VALUE;
+        int maxPathSum = Math.max(Math.max(maxPathSumP1, maxPathSumP2), Math.max(maxPathSumP3, maxPathSumP4));
+        int headMaxPathSum = Math.max(maxPathSumP2, Math.max(maxPathSumP3, maxPathSumP4));
+        return new Info(maxPathSum, headMaxPathSum);
+    }
+
+    //从单词表中选择任意次的单词拼成字符串
+    //暴力方法 dfs
+    public static int ways1(String str, String[] arr) {
+        if (str == null || str.length() == 0 || arr == null || arr.length == 0) {
+            return 0;
+        }
+        HashSet<String> set = new HashSet<>();
+        for (String s : arr) {
+            set.add(s);
+        }
+        return f(str, set, 0);
+    }
+
+    public static int f(String str, HashSet<String> set, int index) {
+        if (index == str.length()) {
+            return 1;
+        }
+        int ways = 0;
+        for (int end = index; end < str.length(); end++) {
+            if (set.contains(str.substring(index, end + 1))) {
+                ways += f(str, set, end + 1);
+            }
+        }
+        return ways;
+    }
+
+    public static void main(String[] args) {
+        String s = "aaaab";
+        String[] arr = new String[]{"a", "aa", "ab", "b"};
+        System.out.println(ways4(s, arr));
+    }
+
+
+    //动态规划，时间复杂度O(N3),因为substring方法复杂度为O(N)
+    //可优化思路：将单词集合set转变为单词前缀树
+    public static int ways2(String str, String[] arr) {
+        if (str == null || str.length() == 0 || arr == null || arr.length == 0) {
+            return 0;
+        }
+        HashSet<String> set = new HashSet<>();
+        for (String s : arr) {
+            set.add(s);
+        }
+        int N = str.length();
+        int[] dp = new int[N + 1];
+        dp[N] = 1;
+        for (int i = N - 1; i >= 0; i--) {
+            for (int end = i; end < N; end++) {
+                //改为前缀树判断
+                if (set.contains(str.substring(i, end + 1))) {
+                    dp[i] += dp[end + 1];
+                }
+            }
+        }
+        return dp[0];
+    }
+
+    public static class Node2 {
+        public boolean end;
+        public Node2[] nexts;
+
+        public Node2() {
+            end = false;
+            nexts = new Node2[26];
+        }
+    }
+
+    //前缀树+dfs
+    public static int ways3(String str, String[] arr) {
+        if (str == null || str.length() == 0 || arr == null || arr.length == 0) {
+            return 0;
+        }
+        Node2 root = new Node2();
+        for (String s : arr) {
+            char[] chs = s.toCharArray();
+            Node2 node = root;
+            int index = 0;
+            for (int i = 0; i < chs.length; i++) {
+                index = chs[i] - 'a';
+                if (node.nexts[index] == null) {
+                    node.nexts[index] = new Node2();
+                }
+                node = node.nexts[index];
+            }
+            node.end = true;
+        }
+        return g(str.toCharArray(), root, 0);
+    }
+
+    public static int g(char[] str, Node2 root, int index) {
+        if (index == str.length) {
+            return 1;
+        }
+        int ways = 0;
+        Node2 cur = root;
+        for (int end = index; end < str.length; end++) {
+            int path = str[end] - 'a';
+            if (cur.nexts[path] == null) {
+                break;
+            }
+            cur = cur.nexts[path];
+            if (cur.end) {
+                ways += g(str, root, end + 1);
+            }
+        }
+        return ways;
+    }
+
+    //前缀树+dp
+    public static int ways4(String s, String[] arr) {
+        if (s == null || s.length() == 0 || arr == null || arr.length == 0) {
+            return 0;
+        }
+        Node2 root = new Node2();
+        for (String str : arr) {
+            char[] chs = str.toCharArray();
+            Node2 node = root;
+            int index = 0;
+            for (int i = 0; i < chs.length; i++) {
+                index = chs[i] - 'a';
+                if (node.nexts[index] == null) {
+                    node.nexts[index] = new Node2();
+                }
+                node = node.nexts[index];
+            }
+            node.end = true;
+        }
+        char[] str = s.toCharArray();
+        int N = str.length;
+        int[] dp = new int[N + 1];
+        dp[N] = 1;
+        for (int i = N - 1; i >= 0; i--) {
+            Node2 cur = root;
+            for (int end = i; end < N; end++) {
+                //改为前缀树判断
+                int path = str[end] - 'a';
+                if (cur.nexts[path] == null) {
+                    break;
+                }
+                cur = cur.nexts[path];
+                if (cur.end) {
+                    dp[i] += dp[end + 1];
+                }
+            }
+        }
+        return dp[0];
+    }
